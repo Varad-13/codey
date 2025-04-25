@@ -1,3 +1,15 @@
 venv
 __pycache__
-assistant.py
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.env
+.env.*
+.idea/
+.vscode/
+__pycache__
