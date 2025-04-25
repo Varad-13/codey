@@ -16,7 +16,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4.1-mini")
 PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 
 # Toggle showing tool call and arguments
-SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "false").lower() == "true"
+SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "true").lower() == "true"
 
 # Toggle showing tool call results
 SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
