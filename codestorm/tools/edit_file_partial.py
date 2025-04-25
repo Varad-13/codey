@@ -1,6 +1,6 @@
 import os
 
-def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int, content: str = "") -> str:
+def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int = None, content: str = "") -> str:
     """
     Partially edit a file.
     Modes:
@@ -18,14 +18,17 @@ def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int, 
         with open(filename, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        if start_line < 1 or end_line > len(lines) or start_line > end_line:
-            return f"Error: invalid line range {start_line} to {end_line} for file with {len(lines)} lines."
-
         if mode == "delete":
+            if end_line is None:
+                return f"Error: end_line is required for delete mode."
+            if start_line < 1 or end_line > len(lines) or start_line > end_line:
+                return f"Error: invalid line range {start_line} to {end_line} for file with {len(lines)} lines."
             # remove lines from start_line to end_line (1-based indexing)
             del lines[start_line - 1:end_line]
+
         elif mode == "insert":
-            # insert content lines at start_line (before that line)
+            if start_line < 1 or start_line > len(lines) + 1:
+                return f"Error: invalid start_line {start_line} for insert in file with {len(lines)} lines."
             content_lines = content.splitlines(keepends=True)
             insert_pos = start_line - 1
             lines = lines[:insert_pos] + content_lines + lines[insert_pos:]
@@ -52,7 +55,11 @@ schema = {
             "end_line": {"type": "integer"},
             "content": {"type": "string"}
         },
-        "required": ["filename", "mode", "start_line", "end_line"],
+        "required": ["filename", "mode", "start_line"],
         "additionalProperties": False
+    },
+    "if": {
+        "properties": {"mode": {"const": "delete"}},
+        "required": ["end_line"]
     }
 }
