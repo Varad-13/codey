@@ -1,39 +1,36 @@
 # cli.py
 #!/usr/bin/env python3
 import sys
-import os
+import platform
 from .chat_runner import process_history
-from .config import PROMPT_NAME
+from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
 import codestorm.prompts
 
 
-def load_prompt(name, shell_info):
+def load_prompt(name, os_info, shell_info):
     # Load prompt by filename from package resources (prompts subpackage)
     try:
         with pkg_resources.open_text(codestorm.prompts, name) as f:
-            # Inject shell info into prompt text
             prompt = f.read()
-            return prompt.replace("{shell}", shell_info)
+            # Inject os and shell info into prompt text
+            prompt = prompt.replace("{os}", os_info)
+            prompt = prompt.replace("{shell}", shell_info)
+            return prompt
     except (FileNotFoundError, ModuleNotFoundError) as e:
         print(f"Error loading prompt '{name}': {e}")
         return ""  # fallback empty prompt
 
 def main():
-    # Determine shell info to inject based on OS
-    if sys.platform.startswith("win"):
-        shell_info = "PowerShell"
-    else:
-        shell_info = "/bin/sh"
+    # Determine OS and shell info
+    os_info = platform.system()
+    shell_info = "/bin/sh"  # fixed shell
 
-    system_prompt = load_prompt(PROMPT_NAME, shell_info)
+    system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
 
-    history = [
-        {
-            "role": "system",
-            "content": system_prompt
-        }
-    ]
+    history = []
+    if SHOW_SYSTEM_PROMPT:
+        history.append({"role": "system", "content": system_prompt})
 
     while True:
         try:

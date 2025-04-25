@@ -21,6 +21,9 @@ SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "true").lower() == "true"
 # Toggle showing tool call results
 SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
 
+# Toggle showing the system prompt in CLI
+SHOW_SYSTEM_PROMPT = os.getenv("SHOW_SYSTEM_PROMPT", "true").lower() == "true"
+
 # Comma-separated list of enabled tools (empty means all enabled)
 ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "").split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
