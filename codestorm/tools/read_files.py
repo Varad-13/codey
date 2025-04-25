@@ -3,19 +3,20 @@ import os
 def read_files(file_list: str) -> str:
     """
     Read one or more files given a comma-separated list of filenames.
-    Returns each file’s content or an error message if not found.
+    Return each files content numbered by line for easier partial edits.
     """
     base_dir = os.getcwd()
     outputs = []
-    for fname in [f.strip() for f in file_list.split(",")] :
+    for fname in [f.strip() for f in file_list.split(",")]:
         filepath = os.path.join(base_dir, fname)
         if not os.path.isfile(filepath):
             outputs.append(f"**Error:** '{fname}' not found.")
             continue
         try:
             with open(filepath, "r", encoding="utf-8") as fh:
-                content = fh.read()
-            outputs.append(f"----- {fname} -----\n{content}")
+                lines = fh.readlines()
+            numbered_lines = [f"{i+1}: {line.rstrip()}" for i, line in enumerate(lines)]
+            outputs.append(f"----- {fname} -----\n" + "\n".join(numbered_lines))
         except Exception as e:
             outputs.append(f"**Error reading {fname}:** {e}")
     return "\n\n".join(outputs)
@@ -23,7 +24,7 @@ def read_files(file_list: str) -> str:
 schema = {
     "type": "function",
     "name": "read_files",
-    "description": "Read one or more files given a comma-separated list.",
+    "description": "Read one or more files with lines numbered for easier partial editing.",
     "parameters": {
         "type": "object",
         "properties": {
