@@ -1,6 +1,6 @@
 # chat_runner.py
 import json
-from config import client
+from config import client, MODEL_NAME
 from tools import tools as tool_schemas, TOOL_MAP
 
 def call_tool(name, args):
@@ -9,11 +9,11 @@ def call_tool(name, args):
 def process_history(history):
     """
     Sends the conversation `history` to the model, executes any tool calls,
-    and returns the updated history plus the assistant’s text response.
+    and returns the updated history plus the assistant's text response.
     """
     while True:
         resp = client.responses.create(
-            model="gpt-4.1-mini",
+            model=MODEL_NAME,
             input=history,
             tools=tool_schemas,
             tool_choice="auto"
@@ -40,7 +40,7 @@ def process_history(history):
             # Loop again so the model can consume the tool outputs
             continue
 
-        # No more tool calls → this is the assistant’s final text reply
+        # No more tool calls this is the assistant's final text reply
         assistant_text = resp.output_text
         history.append({"role": "assistant", "content": assistant_text})
         return history, assistant_text
