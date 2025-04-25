@@ -28,7 +28,9 @@ def process_history(history):
                     continue
                 if SHOW_TOOL_CALLS:
                     print(f"Tool call: {call.name}({args})")
+
                 result = call_tool(call.name, args)
+
                 if SHOW_TOOL_RESULTS:
                     print(f"Tool result: {result}")
                 # Append the call and its output to history

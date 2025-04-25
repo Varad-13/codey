@@ -1,18 +1,26 @@
 import subprocess
 import os
+import sys
 
 def shell(command: str) -> str:
     """
-    Run a shell/PowerShell command (non-interactive) in user's current working directory.
+    Run a shell command (non-interactive) in user's current working directory.
+    Uses PowerShell on Windows, `/bin/sh` on Unix-like systems.
     """
-    # Use os.getcwd() as the base directory
     base_dir = os.getcwd()
+
+    if sys.platform.startswith("win"):
+        shell_cmd = ["powershell", "-Command", command]
+    else:
+        shell_cmd = ["/bin/sh", "-c", command]
+
     proc = subprocess.run(
-        ["powershell", "-Command", command],
+        shell_cmd,
         capture_output=True,
         text=True,
         cwd=base_dir,
     )
+
     out = proc.stdout + proc.stderr
     if proc.returncode == 0 and not out:
         return f"Command `{command}` executed successfully."
