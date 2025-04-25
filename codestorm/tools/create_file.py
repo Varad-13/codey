@@ -1,5 +1,3 @@
-# tools/create_file.py
-
 import os
 
 def create_file(filename: str, content: str) -> str:
@@ -8,15 +6,18 @@ def create_file(filename: str, content: str) -> str:
     Ensures any parent directories exist and sets executable permissions.
     Returns the file’s content or an error message.
     """
-    parent = os.path.dirname(filename)
+    base_dir = os.getcwd()
+    # Make the filename absolute based on base_dir
+    filepath = os.path.join(base_dir, filename)
+    parent = os.path.dirname(filepath)
     if parent and not os.path.isdir(parent):
         os.makedirs(parent, exist_ok=True)
 
     try:
-        with open(filename, "w", encoding="utf-8") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        os.chmod(filename, 0o755)
-        with open(filename, "r", encoding="utf-8") as f:
+        os.chmod(filepath, 0o755)
+        with open(filepath, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
         return f"Error creating {filename}: {e}"

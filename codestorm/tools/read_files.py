@@ -1,5 +1,3 @@
-# tools/read_files.py
-
 import os
 
 def read_files(file_list: str) -> str:
@@ -7,13 +5,15 @@ def read_files(file_list: str) -> str:
     Read one or more files given a comma-separated list of filenames.
     Returns each file’s content or an error message if not found.
     """
+    base_dir = os.getcwd()
     outputs = []
-    for fname in [f.strip() for f in file_list.split(",")]:
-        if not os.path.isfile(fname):
+    for fname in [f.strip() for f in file_list.split(",")] :
+        filepath = os.path.join(base_dir, fname)
+        if not os.path.isfile(filepath):
             outputs.append(f"**Error:** '{fname}' not found.")
             continue
         try:
-            with open(fname, "r", encoding="utf-8") as fh:
+            with open(filepath, "r", encoding="utf-8") as fh:
                 content = fh.read()
             outputs.append(f"----- {fname} -----\n{content}")
         except Exception as e:

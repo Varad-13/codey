@@ -1,7 +1,7 @@
 # chat_runner.py
 import json
-from config import client, MODEL_NAME
-from tools import tools as tool_schemas, TOOL_MAP
+from .config import client, MODEL_NAME
+from .tools import tools as tool_schemas, TOOL_MAP
 
 def call_tool(name, args):
     return TOOL_MAP[name](**args)
