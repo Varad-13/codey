@@ -14,7 +14,7 @@ setup(
             'codestorm=codestorm.cli:main'
         ]
     },
-    author='Your Name',
+    author='Varad Joshi',
     description='Codestorm package providing AI tooling.',
     classifiers=[
         'Programming Language :: Python :: 3',

@@ -2,22 +2,26 @@
 #!/usr/bin/env python3
 import sys
 from .chat_runner import process_history
+from .config import PROMPT_NAME
+import importlib.resources as pkg_resources
+from . import prompts
+
+def load_prompt(name):
+    # Load prompt by filename from package resources (prompts subpackage)
+    try:
+        with pkg_resources.open_text(prompts, name) as f:
+            return f.read()
+    except (FileNotFoundError, ModuleNotFoundError) as e:
+        print(f"Error loading prompt '{name}': {e}")
+        return ""  # fallback empty prompt
 
 def main():
-    # Initialize conversation with your system prompt
+    system_prompt = load_prompt(PROMPT_NAME)
+
     history = [
         {
             "role": "system",
-            "content": (
-                """
-                Give preference to using given tools. All responses must be relevant to current codebase only.
-                You are an autonomous coding assistant and must require minimal user prompting. When you act, follow these rules:
-                1. Self-inspect first: call tools to discover context.
-                2. Summarize actions briefly (200–300 words).
-                3. Only commit via git after edits.
-                4. Do not re-ask for obvious details.
-                """
-            )
+            "content": system_prompt
         }
     ]
 
@@ -36,6 +40,7 @@ def main():
         history, assistant_reply = process_history(history)
 
         print(f"\nAssistant: {assistant_reply}\n" + "-"*60)
+
 
 if __name__ == "__main__":
     main()

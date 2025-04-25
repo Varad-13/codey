@@ -1,6 +1,5 @@
-# chat_runner.py
 import json
-from .config import client, MODEL_NAME
+from .config import client, MODEL_NAME, SHOW_TOOL_CALLS, SHOW_TOOL_RESULTS, ENABLED_TOOLS
 from .tools import tools as tool_schemas, TOOL_MAP
 
 def call_tool(name, args):
@@ -15,7 +14,7 @@ def process_history(history):
         resp = client.responses.create(
             model=MODEL_NAME,
             input=history,
-            tools=tool_schemas,
+            tools=[t for t in tool_schemas if not ENABLED_TOOLS or t['name'] in ENABLED_TOOLS],
             tool_choice="auto"
         )
 
@@ -24,7 +23,14 @@ def process_history(history):
         if tool_calls:
             for call in tool_calls:
                 args = json.loads(call.arguments)
+                if ENABLED_TOOLS and call.name not in ENABLED_TOOLS:
+                    # Skip disabled tools
+                    continue
+                if SHOW_TOOL_CALLS:
+                    print(f"Tool call: {call.name}({args})")
                 result = call_tool(call.name, args)
+                if SHOW_TOOL_RESULTS:
+                    print(f"Tool result: {result}")
                 # Append the call and its output to history
                 history.append({
                     "type": "function_call",

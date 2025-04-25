@@ -13,7 +13,17 @@ if not OPENAI_API_KEY:
 
 # Configurable parameters
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4.1-mini")
-PROMPT_PATH = os.getenv("PROMPT_PATH", "prompts/default_prompt.txt")
+PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
+
+# Toggle showing tool call and arguments
+SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "false").lower() == "true"
+
+# Toggle showing tool call results
+SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
+
+# Comma-separated list of enabled tools (empty means all enabled)
+ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "").split(",")
+ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
