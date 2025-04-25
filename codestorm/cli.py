@@ -1,22 +1,32 @@
 # cli.py
 #!/usr/bin/env python3
 import sys
+import os
 from .chat_runner import process_history
 from .config import PROMPT_NAME
 import importlib.resources as pkg_resources
-from . import prompts
+import codestorm.prompts
 
-def load_prompt(name):
+
+def load_prompt(name, shell_info):
     # Load prompt by filename from package resources (prompts subpackage)
     try:
-        with pkg_resources.open_text(prompts, name) as f:
-            return f.read()
+        with pkg_resources.open_text(codestorm.prompts, name) as f:
+            # Inject shell info into prompt text
+            prompt = f.read()
+            return prompt.replace("{shell}", shell_info)
     except (FileNotFoundError, ModuleNotFoundError) as e:
         print(f"Error loading prompt '{name}': {e}")
         return ""  # fallback empty prompt
 
 def main():
-    system_prompt = load_prompt(PROMPT_NAME)
+    # Determine shell info to inject based on OS
+    if sys.platform.startswith("win"):
+        shell_info = "PowerShell"
+    else:
+        shell_info = "/bin/sh"
+
+    system_prompt = load_prompt(PROMPT_NAME, shell_info)
 
     history = [
         {
