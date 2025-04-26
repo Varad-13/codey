@@ -33,11 +33,18 @@ def main():
         history.append({"role": "system", "content": system_prompt})
 
     while True:
-        try:
-            user_input = input("You: ")
-        except (EOFError, KeyboardInterrupt):
-            print("\nExiting.")
-            sys.exit(0)
+        print("Enter your input (use Shift+Enter for newline, type 'ender' alone on a line to submit):")
+        multiline_input_lines = []
+        while True:
+            try:
+                line = input()
+            except (EOFError, KeyboardInterrupt):
+                print("\nExiting.")
+                sys.exit(0)
+            if line.strip() == "ender":
+                break
+            multiline_input_lines.append(line)
+        user_input = "\n".join(multiline_input_lines)
 
         if user_input.strip().lower() in ("exit", "quit"):
             print("Goodbye!")
@@ -47,7 +54,6 @@ def main():
         history, assistant_reply = process_history(history)
 
         print(f"\nAssistant: {assistant_reply}\n" + "-"*60)
-
 
 if __name__ == "__main__":
     main()
