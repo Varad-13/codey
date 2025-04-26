@@ -3,6 +3,7 @@ import os
 def edit_files_by_string(file_list: str, search_string: str, replace_string: str) -> str:
     """
     Search and replace across multiple files given by comma-separated file_list.
+    Use only if no user error is reported. For errors, prefer a full rewrite with edit_file.
     Returns a summary of changes.
     """
     base_dir = os.getcwd()
@@ -38,7 +39,7 @@ def edit_files_by_string(file_list: str, search_string: str, replace_string: str
 schema = {
     "type": "function",
     "name": "edit_files_by_string",
-    "description": "Search and replace a string across multiple files (case-sensitive).",
+    "description": "Search and replace a string across multiple files (case-sensitive). Only use if user does not report errors; for errors, prefer full file rewrite.",
     "parameters": {
         "type": "object",
         "properties": {
