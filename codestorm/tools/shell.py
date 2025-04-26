@@ -21,7 +21,7 @@ def shell(command: str) -> str:
         cwd=base_dir,
     )
 
-    out = proc.stdout + proc.stderr
+    out = str(proc.stdout) + str(proc.stderr)
     if proc.returncode == 0 and not out:
         return f"Command `{command}` executed successfully."
     return out

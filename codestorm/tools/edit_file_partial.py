@@ -63,63 +63,7 @@ def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int =
 
     except Exception as e:
         return f"Error editing {filename}: {e}"
-
 schema = {
-    "type": "function",
-    "name": "edit_file_partial",
-    "description": "Partially edit a file by insert, delete or replace mode on specified line range. Only use for incremental changes, avoid partial edits if user reported errors; prefer full rewrite then.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "filename": {"type": "string"},
-            "mode": {"type": "string", "enum": ["insert", "delete", "replace"]},
-            "start_line": {"type": "integer"},
-            "end_line": {"type": "integer"},
-            "content": {"type": "string"}
-        },
-        "required": ["filename", "mode", "start_line"],
-        "additionalProperties": False
-    },
-    "if": {
-        "properties": {"mode": {"const": "delete"}},
-        "required": ["end_line"]
-    },
-    "allOf": [
-        {
-            "if": {"properties": {"mode": {"const": "replace"}}},
-            "then": {"required": ["end_line"]}
-        }
-    ]
-}
-        return f"Error editing {filename}: {e}"
-
-schema = {
-    "type": "function",
-    "name": "edit_file_partial",
-    "description": "Partially edit a file by insert, delete or replace mode on specified line range. Only use for incremental changes, avoid partial edits if user reported errors; prefer full rewrite then.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "filename": {"type": "string"},
-            "mode": {"type": "string", "enum": ["insert", "delete", "replace"]},
-            "start_line": {"type": "integer"},
-            "end_line": {"type": "integer"},
-            "content": {"type": "string"}
-        },
-        "required": ["filename", "mode", "start_line"],
-        "additionalProperties": False
-    },
-    "if": {
-        "properties": {"mode": {"const": "delete"}},
-        "required": ["end_line"]
-    },
-    "allOf": [
-        {
-            "if": {"properties": {"mode": {"const": "replace"}}},
-            "then": {"required": ["end_line"]}
-        }
-    ]
-}
     "type": "function",
     "name": "edit_file_partial",
     "description": "Partially edit a file by insert, delete or replace mode on specified line range. Only use for incremental changes, avoid partial edits if user reported errors; prefer full rewrite then.",
