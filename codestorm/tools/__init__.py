@@ -13,8 +13,6 @@ TOOL_MAP = {
     "read_files": read_files,
     "edit_file": edit_file,
     "create_file": create_file,
-    "edit_file_partial": edit_file_partial,
-    "edit_files_by_string": edit_files_by_string
 }
 
 # JSON schemas for model integration
@@ -24,6 +22,4 @@ tools = [
     read_files_schema,
     edit_file_schema,
     create_file_schema,
-    edit_file_partial_schema,
-    edit_files_by_string_schema
 ]
