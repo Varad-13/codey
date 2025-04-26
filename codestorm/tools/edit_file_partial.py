@@ -6,7 +6,7 @@ def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int =
     Modes:
       - insert: insert `content` at line start_line
       - delete: delete lines from start_line to end_line inclusive
-    Returns updated file content or error.
+    Returns success message or error message.
     """
     if not os.path.isfile(filename):
         return f"Error: File '{filename}' not found."
@@ -36,8 +36,7 @@ def edit_file_partial(filename: str, mode: str, start_line: int, end_line: int =
         with open(filename, "w", encoding="utf-8") as f:
             f.writelines(lines)
 
-        with open(filename, "r", encoding="utf-8") as f:
-            return f.read()
+        return "File edited successfully."
 
     except Exception as e:
         return f"Error editing {filename}: {e}"
