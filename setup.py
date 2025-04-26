@@ -7,7 +7,8 @@ setup(
     include_package_data=True,
     install_requires=[
         'openai',
-        'python-dotenv'
+        'python-dotenv',
+        'prompt_toolkit'
     ],
     entry_points={
         'console_scripts': [

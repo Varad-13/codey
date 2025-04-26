@@ -1,5 +1,7 @@
-# cli.py
 #!/usr/bin/env python3
+from prompt_toolkit import PromptSession
+from prompt_toolkit.key_binding import KeyBindings
+
 import sys
 import platform
 from .chat_runner import process_history
@@ -7,25 +9,44 @@ from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
 import codestorm.prompts
 
+# Initialize prompt session and key bindings
+session = PromptSession()
+kb = KeyBindings()
+
+
+@kb.add('c-n')  # Ctrl+J is ASCII newline
+def _(event):
+    """Ctrl+J → insert newline (fallback for Shift+Enter)"""
+    event.current_buffer.insert_text('\n')
+
+@kb.add('enter')
+def _(event):
+    """Enter → submit buffer"""
+    event.app.exit(result=event.current_buffer.text)
 
 def load_prompt(name, os_info, shell_info):
-    # Load prompt by filename from package resources (prompts subpackage)
+    """
+    Load prompt by filename from package resources (prompts subpackage),
+    and inject OS/shell info.
+    """
     try:
         with pkg_resources.open_text(codestorm.prompts, name) as f:
             prompt = f.read()
-            # Inject os and shell info into prompt text
-            prompt = prompt.replace("{os}", os_info)
-            prompt = prompt.replace("{shell}", shell_info)
-            return prompt
+        # Inject dynamic information into prompt text
+        prompt = prompt.replace("{os}", os_info)
+        prompt = prompt.replace("{shell}", shell_info)
+        return prompt
     except (FileNotFoundError, ModuleNotFoundError) as e:
         print(f"Error loading prompt '{name}': {e}")
-        return ""  # fallback empty prompt
+        return ""
+
 
 def main():
-    # Determine OS and shell info
+    # Detect OS and shell
     os_info = platform.system()
-    shell_info = "/bin/sh"  # fixed shell
+    shell_info = "/bin/sh"
 
+    # Load the system prompt
     system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
 
     history = []
@@ -33,27 +54,33 @@ def main():
         history.append({"role": "system", "content": system_prompt})
 
     while True:
-        print("Enter your input (use Shift+Enter for newline, type 'ender' alone on a line to submit):")
-        multiline_input_lines = []
-        while True:
-            try:
-                line = input()
-            except (EOFError, KeyboardInterrupt):
-                print("\nExiting.")
-                sys.exit(0)
-            if line.strip() == "ender":
-                break
-            multiline_input_lines.append(line)
-        user_input = "\n".join(multiline_input_lines)
+        try:
+            prompt_message = (
+                "You ("
+                + ("Shift+Enter for newline, " if has_modifiers else "Ctrl+J for newline, ")
+                + "Enter to submit):\n"
+            )
+            text = session.prompt(
+                prompt_message,
+                multiline=True,
+                key_bindings=kb
+            )
+        except (EOFError, KeyboardInterrupt):
+            print("\nExiting.")
+            sys.exit(0)
 
-        if user_input.strip().lower() in ("exit", "quit"):
+        # Handle exit commands
+        if text.strip().lower() in ("exit", "quit"):
             print("Goodbye!")
             sys.exit(0)
 
-        history.append({"role": "user", "content": user_input})
+        # Send user text to LLM and update history
+        history.append({"role": "user", "content": text})
         history, assistant_reply = process_history(history)
 
+        # Display the assistant's response
         print(f"\nAssistant: {assistant_reply}\n" + "-"*60)
+
 
 if __name__ == "__main__":
     main()
