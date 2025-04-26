@@ -57,7 +57,7 @@ def main():
         try:
             prompt_message = (
                 "You ("
-                + ("Shift+Enter for newline, " if has_modifiers else "Ctrl+J for newline, ")
+                + ("Ctrl+J for newline, ")
                 + "Enter to submit):\n"
             )
             text = session.prompt(
