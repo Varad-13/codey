@@ -1,11 +1,18 @@
 import os
+import difflib
 from codestorm.tools.shell import shell
 
-def edit_files_by_string(file_list: str, search_string: str, replace_string: str) -> str:
+def edit_files_by_string(file_list: str, search_string: str, replace_string: str, apply: bool = False) -> str:
     """
-    Search and replace across multiple files given by comma-separated file_list.
-    Use only if no user error is reported. For errors, prefer a full rewrite with edit_file.
-    Returns a summary of changes and git diff output.
+    Search and replace a string across multiple files (case-sensitive).
+    For large refactors only. By default (apply=False), performs a dry-run and returns unified diffs.
+    If apply=True, writes changes to files and returns git diff output.
+
+    Parameters:
+    - file_list: comma-separated file paths relative to cwd.
+    - search_string: substring to search for.
+    - replace_string: string to replace occurrences with.
+    - apply: if True, apply changes; if False, only show diffs without writing.
     """
     base_dir = os.getcwd()
     results = []
@@ -19,50 +26,55 @@ def edit_files_by_string(file_list: str, search_string: str, replace_string: str
 
         try:
             with open(filepath, "r", encoding="utf-8") as f:
-                content = f.read()
+                original = f.read().splitlines(keepends=True)
 
-            if search_string not in content:
+            if search_string not in "".join(original):
                 results.append(f"'{fname}': search string not found.")
                 continue
 
-            updated_content = content.replace(search_string, replace_string)
+            updated = [line.replace(search_string, replace_string) for line in original]
 
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(updated_content)
-
-            results.append(f"'{fname}': replaced occurrences.")
+            if apply:
+                # Write changes
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.writelines(updated)
+                # Rely on git diff for applied changes
+                diff_output = shell("git diff")
+                results.append(f"'{fname}': applied replacements.")
+                results.append(diff_output)
+            else:
+                # Generate unified diff for preview
+                diff = difflib.unified_diff(
+                    original,
+                    updated,
+                    fromfile=f"a/{fname}",
+                    tofile=f"b/{fname}",
+                    lineterm=""
+                )
+                preview = "\n".join(diff)
+                results.append(f"Preview diff for '{fname}':")
+                results.append(preview if preview else "(no changes)" )
 
         except Exception as e:
             results.append(f"Error processing {fname}: {e}")
 
-    diff_output = shell("git diff")
-    return "\n".join(results) + "\n" + diff_output
+    return "\n".join(results)
 
 schema = {
     "type": "function",
     "name": "edit_files_by_string",
-    "description": "Search and replace a string across multiple files (case-sensitive). Only use if user does not report errors; for errors, prefer full file rewrite.",
+    "description": (
+        "Search and replace a string across multiple files (case-sensitive). "
+        "Intended for large refactors. By default (apply=False) returns a preview unified diff; "
+        "with apply=True writes changes and returns git diff."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
-            "file_list": {"type": "string"},
-            "search_string": {"type": "string"},
-            "replace_string": {"type": "string"}
-        },
-        "required": ["file_list", "search_string", "replace_string"],
-        "additionalProperties": False
-    }
-}
-schema = {
-    "type": "function",
-    "name": "edit_files_by_string",
-    "description": "Search and replace a string across multiple files (case-sensitive). Only use if user does not report errors; for errors, prefer full file rewrite.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "file_list": {"type": "string"},
-            "search_string": {"type": "string"},
-            "replace_string": {"type": "string"}
+            "file_list": {"type": "string", "description": "Comma-separated file paths to process."},
+            "search_string": {"type": "string", "description": "Substring to search for in files."},
+            "replace_string": {"type": "string", "description": "Replacement string."},
+            "apply": {"type": "boolean", "description": "If true, apply changes; otherwise only preview diffs."}
         },
         "required": ["file_list", "search_string", "replace_string"],
         "additionalProperties": False
