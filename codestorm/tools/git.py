@@ -12,6 +12,7 @@ class Git:
         return shell('git add -A')  # Add all files if none specified
 
     def commit(self, message, args=None):
+        message = f"{message}+\n\n - Signed off by Codey"
         if args:
             return shell(f'git commit {args} -m "{message}"')  # Message only matters for commit
         return shell(f'git commit -m "{message}"')  # Message only matters for commit
@@ -76,7 +77,7 @@ schema = {
     "description": (
         "A tool to handle Git functionality. The commands and their relevant parameters are as follows:\n"
         "- `add`: Add files to the staging area. Specify files to add certain files or omit for all. You can also provide additional arguments.\n"
-        "- `commit`: Commit staged changes with a message. Commit messages must follow the format: `type: subject` (<=50 chars), blank line, optional detailed body. Types: feat, fix, docs, style, refactor, test, chore.\n Sign off all messages as Codey (author shouldn't be changed)."
+        "- `commit`: Commit staged changes with a message. Commit messages must follow the format: `type: subject` (<=50 chars), blank line, optional detailed body. Types: feat, fix, docs, style, refactor, test, chore."
         "- `diff`: Show unstaged changes. Can include additional arguments.\n"
         "- `status`: Display the working directory status. Additional arguments can be supplied.\n"
         "- `log`: Show commit history. Additional arguments can be included.\n"
