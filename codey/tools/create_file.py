@@ -4,7 +4,7 @@ def create_file(filename: str, content: str) -> str:
     """
     Create a new text file with the given content.
     Ensures any parent directories exist and sets executable permissions.
-    Returns the file’s content or an error message.
+    Returns the file's content or an error message.
     """
     base_dir = os.getcwd()
     # Make the filename absolute based on base_dir
