@@ -1,32 +1,20 @@
 # Installation
 
-To install Codey, follow the instructions below based on your environment:
+To install Codey, follow the instructions below:
 
 ## Prerequisites
 - Ensure you have Python 3.7 or later installed on your system.
 - You also need to have `pip`, Python's package installer.
 
 ## Installation Steps
-1. **Clone the Repository**:
- Run the following command to clone the Codey repository:
- 
- ```bash
- git clone https://github.com/Varad-13/codey.git
- cd codey
- ```
+1. **Find the Latest Build**:
+ Visit the [Releases page](https://github.com/Varad-13/codey/releases) on GitHub to download the latest .whl or .tar.gz file.
 
-2. **Install Dependencies**:
- Codey requires some dependencies to function correctly. Install them by running:
+2. **Install the Package**:
+ Use the downloaded file to install Codey with pip. For example, run:
  
  ```bash
- pip install -r requirements.txt
- ```
-
-3. **Install Codey**:
- Finally, install Codey by running:
- 
- ```bash
- pip install .
+ pip install <wheel file from release>
  ```
 
 ## Verify Installation

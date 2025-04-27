@@ -1,17 +1,16 @@
 # Codey
 
-Codey is a Python package providing AI tooling.
+Codey is a Python package providing AI tooling that enables developers to integrate advanced AI functionalities into their applications easily.
+
+## Key Features
+- **AI Power**: Leverage artificial intelligence to enhance your applications.
+- **Easy Installation**: Quickly install and get started with a simple command.
+- **Customizable Configuration**: Adjust settings to suit your specific needs.
 
 ## Installation
-
-To install Codey, follow the instructions below:
-
-```bash
-pip install <wheel file from release>
-```
+For detailed installation instructions, follow [Installation Documentation](docs/installation.md).
 
 ## Usage
-
 After installation, run the CLI with:
 
 ```bash
@@ -19,15 +18,12 @@ codey
 ```
 
 ## Configuration
-
 Set environment variables or use a local `.env` file:
-
 - `OPENAI_API_KEY` (required)
 - `MODEL_NAME` (optional)
 - `PROMPT_PATH` (optional)
 
 ## Documentation
-
 For comprehensive documentation, refer to the following sections:
 - [Installation Documentation](docs/installation.md)
 - [Usage Documentation](docs/usage.md)
@@ -39,6 +35,8 @@ For comprehensive documentation, refer to the following sections:
 - [Contributing Guidelines](docs/contributing.md)
 - [Frequently Asked Questions](docs/faq.md)
 
-## License
+## Contributing
+If you're interested in contributing, please check the [Contributing Documentation](docs/contributing.md).
 
+## License
 This project is licensed under the MIT License.
