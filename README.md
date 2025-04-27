@@ -7,6 +7,9 @@ Codey is a Python package providing AI tooling that enables developers to integr
 - **Easy Installation**: Quickly install and get started with a simple command.
 - **Customizable Configuration**: Adjust settings to suit your specific needs.
 
+## Future Plans
+Once fully developed, Codey will operate as proprietary software. Free binaries will be available for everyday users, while enterprise plans will offer additional features and support.
+
 ## Installation
 For detailed installation instructions, follow [Installation Documentation](docs/installation.md).
 
