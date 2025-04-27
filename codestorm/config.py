@@ -15,8 +15,8 @@ if not OPENAI_API_KEY:
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 
-# Disable script tool by setting ENABLED_TOOLS
-ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "edit_file,read_codebase").split(",")
+# Enable all tools except partial editing, edit by string, and shell
+ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "edit_file,read_codebase,calculate,create_file,read_files").split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
 # Toggle showing tool call and arguments
