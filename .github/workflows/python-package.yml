@@ -29,6 +29,12 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
 
+      - name: Version increment
+        run: |
+          git fetch --prune --unshallow
+          git tag v$(python setup.py --version)
+          git push origin --tags
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -38,8 +44,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Version increment
-        run: |
-          git fetch --prune --unshallow
-          git tag v$(python setup.py --version)
-          git push origin --tags
