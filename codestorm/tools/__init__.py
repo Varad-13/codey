@@ -5,7 +5,7 @@ from .edit_file import edit_file, schema as edit_file_schema
 from .create_file import create_file, schema as create_file_schema
 from .edit_file_partial import edit_file_partial, schema as edit_file_partial_schema
 from .edit_files_by_string import edit_files_by_string, schema as edit_files_by_string_schema
-from .git_tool import GitTool, git_tool_schema
+from .git import GitTool, schema as git_tool_schema
 
 # Map tool names to their functions
 TOOL_MAP = {
