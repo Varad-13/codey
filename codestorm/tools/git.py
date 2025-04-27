@@ -25,6 +25,9 @@ class GitTool:
     def branch(self):
         return shell('git branch')
 
+    def rm(self, files):
+        return shell(f'git rm {files}')
+
 schema = {
     "type": "function",
     "name": "git_tool",
@@ -41,11 +44,13 @@ schema = {
                     "status",
                     "log",
                     "checkout",
-                    "branch"
+                    "branch",
+                    "rm"
                 ]
             },
             "message": {"type": "string"},
-            "branch": {"type": "string"}
+            "branch": {"type": "string"},
+            "files": {"type": "string"}
         },
         "required": ["command"],
         "additionalProperties": False
