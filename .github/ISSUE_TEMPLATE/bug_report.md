@@ -30,5 +30,8 @@ A clear and concise description of what actually happened.
 **Screenshots** 
 If applicable, add screenshots to help explain your problem.
 
+**Codey Log** 
+Please attach your `codey.log` file to help us understand the issue better.
+
 **Additional Context** 
 Add any other context about the problem here.
