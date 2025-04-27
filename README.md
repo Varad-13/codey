@@ -7,7 +7,7 @@ Codey is a Python package providing AI tooling.
 To install Codey, follow the instructions below:
 
 ```bash
-pip install .
+pip install <wheel file from release>
 ```
 
 ## Usage

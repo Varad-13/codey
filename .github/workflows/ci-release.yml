@@ -34,15 +34,23 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
 
-      - name: Tag version
+      - name: Tag version if missing
         id: tag
         run: |
           VERSION=$(python setup.py --version)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          git tag v$VERSION
-          git push origin v$VERSION
+          if git rev-parse --verify v$VERSION >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists, skipping."
+            echo "created=false" >> $GITHUB_OUTPUT
+          else
+            echo "Creating tag v$VERSION"
+            git tag v$VERSION
+            git push origin v$VERSION
+            echo "created=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create GitHub Release
+        if: steps.tag.outputs.created == 'true'
         uses: softprops/action-gh-release@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
