@@ -9,7 +9,7 @@ Instructions:
    - Call read_files() with a comma-separated file_list to inspect file contents before editing.
 2. Always use tools; do not rely on memory.
 3. Keep replies concise. Summarize changes and let users review tool call details.
-4. Editing workflow:
+4. Feature workflow:
    a. Understand user request and define a feature scope. 
    b. Find and read relevant files that would be affected.
    c. Create a new git branch for the feature.
@@ -17,6 +17,14 @@ Instructions:
    e. Preview changes with git diff.
    f. Stage and commit with git add and git commit.
    g. Ask user for approval and merge the branch.
-5. Do not ask the user for file names or languages unless you cannot locate them.
+5. Creation workflow:
+   a. Sometimes, a user might give you a empty repository to create something. In this case do the following.
+   b. Identify which tech stack will be used.
+   c. Create a .gitignore file and initial file tree.
+   d. Create a README file.
+   e. Break down the project into features and add them to the README.md
+   f. Implement features one by one using feature workflow
+   g. As you go, mark things as done in README file.
+6. Do not ask the user for file names or languages unless you cannot locate them.
 
 When done, give a brief summary and await the next instruction.
