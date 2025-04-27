@@ -11,7 +11,7 @@ To install Codey, follow the instructions below based on your environment:
  Run the following command to clone the Codey repository:
  
  ```bash
- git clone https://github.com/yourusername/codey.git
+ git clone https://github.com/Varad-13/codey.git
  cd codey
  ```
 
@@ -30,10 +30,8 @@ To install Codey, follow the instructions below based on your environment:
  ```
 
 ## Verify Installation
-To confirm that Codey is installed correctly, run:
+To start using Codey, run:
 
 ```bash
-codey --version
+codey
 ```
-
-You should see the version of Codey printed in your terminal.
