@@ -13,4 +13,4 @@ dist/
 .idea/
 .vscode/
 __pycache__
-.log
+*.log
