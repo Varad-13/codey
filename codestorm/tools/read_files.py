@@ -1,5 +1,6 @@
 import os
 
+
 def read_files(file_list: str) -> str:
     """
     Read one or more files given a comma-separated list of filenames.
@@ -7,6 +8,7 @@ def read_files(file_list: str) -> str:
     """
     base_dir = os.getcwd()
     outputs = []
+    # Split the input and remove spaces
     for fname in [f.strip() for f in file_list.split(",")]:
         filepath = os.path.join(base_dir, fname)
         if not os.path.isfile(filepath):
