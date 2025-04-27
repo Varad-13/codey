@@ -4,7 +4,9 @@ class Git:
     def __init__(self):
         pass
 
-    def add(self, files=None):
+    def add(self, files=None, args=None):
+        if args:
+            return shell(f'git add {args} {files}')  # Add specified files with any extra args
         if files:
             return shell(f'git add {files}')  # Add specified files
         return shell('git add -A')  # Add all files if none specified
@@ -30,7 +32,7 @@ class Git:
 schema = {
     "type": "function",
     "name": "git_tool",
-    "description": "A tool to handle Git functionality. The commands and their relevant parameters are as follows: \n- `add`: Add files to the staging area. Specify files to add certain files or omit for all.\n- `commit`: Commit staged changes with a message. The message is mandatory.\n- `diff`: Show unstaged changes. No additional parameters required.\n- `status`: Display the working directory status.\n- `log`: Show commit history.\n- `checkout`: Switch to a specified branch. The branch parameter is necessary.\n- `rm`: Remove files from the staging area. Requires the names of files to be removed.\n","parameters": {
+    "description": "A tool to handle Git functionality. The commands and their relevant parameters are as follows: \n- `add`: Add files to the staging area. Specify files to add certain files or omit for all. You can also provide additional arguments.\n- `commit`: Commit staged changes with a message. The message is mandatory.\n- `diff`: Show unstaged changes. No additional parameters required.\n- `status`: Display the working directory status.\n- `log`: Show commit history.\n- `checkout`: Switch to a specified branch. The branch parameter is necessary.\n- `rm`: Remove files from the staging area. Requires the names of files to be removed.\n","parameters": {
         "type": "object",
         "properties": {
             "command": {
@@ -48,7 +50,8 @@ schema = {
             },
             "message": {"type": "string"},
             "branch": {"type": "string"},
-            "files": {"type": "string"}
+            "files": {"type": "string"},
+            "args": {"type": "string"}
         },
         "required": ["command"],
         "additionalProperties": False
