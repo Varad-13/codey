@@ -15,8 +15,12 @@ if not OPENAI_API_KEY:
 MODEL_NAME = os.getenv("MODEL_NAME", "o4-mini")
 PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 
-# Enable all tools except partial editing, edit by string, and shell
-ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "edit_file,read_codebase,calculate,create_file,read_files,git").split(",")
+# Enable tools by default
+# Previously excluded partial editing, string-based edit, and shell
+ENABLED_TOOLS = os.getenv(
+    "ENABLED_TOOLS",
+    "read_codebase,read_files,calculate,create_file,edit_file,edit_files_by_string,git,grep"
+).split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
 # Toggle showing tool call and arguments
