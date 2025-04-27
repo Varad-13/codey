@@ -6,9 +6,6 @@ on:
  - master
  tags:
  - 'v*.*.*'
- pull_request:
- branches:
- - master
 
 jobs:
  build:
@@ -28,22 +25,21 @@ jobs:
  python -m pip install --upgrade pip
  pip install -r requirements.txt
 
- - name: Run tests
- run: |
- pytest
-
  - name: Build package
  run: |
  python setup.py sdist bdist_wheel
+
+ - name: Create Release
+ uses: softprops/action-gh-release@v1
+ with:
+ tag: ${{ github.ref }}
+ files: |
+ dist/*
+ env:
+ GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
  - name: Version increment
  run: |
  git fetch --prune --unshallow
  git tag v$(python setup.py --version)
  git push origin --tags
-
- - name: Publish to PyPI
- if: github.ref_type == 'tag'
- run: |
- python -m pip install twine
- python -m twine upload --repository pypi dist/*
