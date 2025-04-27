@@ -19,7 +19,7 @@ PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 # Previously excluded partial editing, string-based edit, and shell
 ENABLED_TOOLS = os.getenv(
     "ENABLED_TOOLS",
-    "read_codebase,read_files,calculate,create_file,edit_file,edit_files_by_string,git,grep"
+    "read_codebase,read_files,calculate,create_file,edit_file,edit_files_by_string,git"
 ).split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
