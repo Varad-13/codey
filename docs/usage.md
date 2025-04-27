@@ -9,6 +9,9 @@ To execute Codey, simply open your terminal and type:
 codey
 ```
 
+## Autonomous Tool Selection
+Codey is designed to automatically determine which tool to use based on your input. You can interact with it naturally, and it will select the most appropriate tool to fulfill your request.
+
 ## Basic Commands
 Once the CLI is running, you can access various features. Here are some basic commands you can use:
 
@@ -24,17 +27,18 @@ Once the CLI is running, you can access various features. Here are some basic co
  codey chat
  ```
 
-3. **Execute a Tool**: You can run various tools by specifying the tool name and its arguments.
+3. **Execute a Task**: Simply state what you want to achieve, and Codey will determine the necessary tool to execute your request.
  
+ For example:
  ```bash
- codey tool_name --arg1 value1 --arg2 value2
+ codey "Calculate the sum of 5 and 10"
  ```
 
 ## Example Usage
 Here is an example of how to execute a command using Codey:
 
 ```bash
-codey calculate --num1 5 --num2 10
+codey "Find the average of 20, 30, and 50"
 ```
 
 ## Configuration
