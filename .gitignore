@@ -13,3 +13,4 @@ dist/
 .idea/
 .vscode/
 __pycache__
+codestorm.log
