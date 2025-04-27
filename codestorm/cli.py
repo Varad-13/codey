@@ -50,8 +50,10 @@ def main():
     system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
 
     history = []
+    history.append({"role": "system", "content": system_prompt})
     if SHOW_SYSTEM_PROMPT:
-        history.append({"role": "system", "content": system_prompt})
+        print(f"\System: {system_prompt}\n" + "-"*60)
+
 
     while True:
         try:
