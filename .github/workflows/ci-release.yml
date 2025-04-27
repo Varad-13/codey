@@ -1,0 +1,54 @@
+# .github/workflows/ci-release.yml
+name: CI & Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write   # needed to push tags & create releases
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0            # fetch all history and tags
+          persist-credentials: true # allow git push
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build package
+        run: |
+          python setup.py sdist bdist_wheel
+
+      - name: Tag version
+        id: tag
+        run: |
+          VERSION=$(python setup.py --version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          git tag v$VERSION
+          git push origin v$VERSION
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ steps.tag.outputs.version }}
+          name: Release v${{ steps.tag.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/*.tar.gz
+            dist/*.whl
