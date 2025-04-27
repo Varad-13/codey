@@ -27,9 +27,6 @@ class GitTool:
     def rm(self, files):
         return shell(f'git rm {files}')  # Files required for rm command
 
-    def branch(self):
-        return shell('git branch')
-
 schema = {
     "type": "function",
     "name": "git_tool",
