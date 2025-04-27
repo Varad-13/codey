@@ -12,7 +12,7 @@ if not OPENAI_API_KEY:
     raise RuntimeError(f"Please set the {API_KEY_ENV} environment variable")
 
 # Configurable parameters
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4.1-mini")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 
 # Toggle showing tool call and arguments

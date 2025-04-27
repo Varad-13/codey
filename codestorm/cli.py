@@ -16,7 +16,7 @@ kb = KeyBindings()
 
 @kb.add('c-n')  # Ctrl+J is ASCII newline
 def _(event):
-    """Ctrl+J → insert newline (fallback for Shift+Enter)"""
+    """Ctrl+N → insert newline"""
     event.current_buffer.insert_text('\n')
 
 @kb.add('enter')
@@ -57,8 +57,8 @@ def main():
         try:
             prompt_message = (
                 "You ("
-                + ("Ctrl+J for newline, ")
-                + "Enter to submit):\n"
+                + ("Ctrl+N for newline, ")
+                + "Enter to submit): "
             )
             text = session.prompt(
                 prompt_message,
