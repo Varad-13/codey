@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
+import platform
+import sys
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
-
-import sys
-import platform
 from .chat_runner import process_history
 from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
@@ -13,16 +12,18 @@ import codestorm.prompts
 session = PromptSession()
 kb = KeyBindings()
 
-
 @kb.add('c-n')  # Ctrl+J is ASCII newline
+
 def _(event):
     """Ctrl+N → insert newline"""
     event.current_buffer.insert_text('\n')
 
 @kb.add('enter')
+
 def _(event):
     """Enter → submit buffer"""
     event.app.exit(result=event.current_buffer.text)
+
 
 def load_prompt(name, os_info, shell_info):
     """
@@ -49,21 +50,16 @@ def main():
     # Load the system prompt
     system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
 
-    history = []
-    history.append({"role": "system", "content": system_prompt})
+    # Initialize conversation history with system prompt
+    history = [{"role": "system", "content": system_prompt}]
     if SHOW_SYSTEM_PROMPT:
-        print(f"\System: {system_prompt}\n" + "-"*60)
+        print(f"System prompt loaded.\n{'-'*60}")
 
-
+    # Main interaction loop
     while True:
         try:
-            prompt_message = (
-                "You ("
-                + ("Ctrl+N for newline, ")
-                + "Enter to submit): "
-            )
             text = session.prompt(
-                prompt_message,
+                "You (Ctrl+N newline, Enter to submit): ",
                 multiline=True,
                 key_bindings=kb
             )
@@ -76,12 +72,12 @@ def main():
             print("Goodbye!")
             sys.exit(0)
 
-        # Send user text to LLM and update history
+        # Append user message and process
         history.append({"role": "user", "content": text})
         history, assistant_reply = process_history(history)
 
         # Display the assistant's response
-        print(f"\nAssistant: {assistant_reply}\n" + "-"*60)
+        print(f"\nAssistant: {assistant_reply}\n{'-'*60}")
 
 
 if __name__ == "__main__":
