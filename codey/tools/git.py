@@ -12,7 +12,7 @@ class Git:
         return shell('git add -A')  # Add all files if none specified
 
     def commit(self, message, args=None):
-        message = f"{message}+\n\n - Signed off by Codey"
+        message = f"{message}\n\n - Signed off by Codey"
         if args:
             return shell(f'git commit {args} -m "{message}"')  # Message only matters for commit
         return shell(f'git commit -m "{message}"')  # Message only matters for commit
