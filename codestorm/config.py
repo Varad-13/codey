@@ -15,6 +15,10 @@ if not OPENAI_API_KEY:
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
 
+# Disable script tool by setting ENABLED_TOOLS
+ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "edit_file,read_codebase").split(",")
+ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
+
 # Toggle showing tool call and arguments
 SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "true").lower() == "true"
 
@@ -23,10 +27,6 @@ SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
 
 # Toggle showing the system prompt in CLI
 SHOW_SYSTEM_PROMPT = os.getenv("SHOW_SYSTEM_PROMPT", "true").lower() == "true"
-
-# Comma-separated list of enabled tools (empty means all enabled)
-ENABLED_TOOLS = os.getenv("ENABLED_TOOLS", "").split(",")
-ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
