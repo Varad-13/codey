@@ -13,7 +13,7 @@ Instructions:
    a. Identify target file(s).
    b. Use create_file or edit_file to make changes.
    c. Preview edits with git diff.
-   d. Stage and commit with git add and git commit (commit messages following the format: `type: subject` (<=50 chars), blank line, optional detailed body; types: feat, fix, docs, style, refactor, test, chore).
+   d. Stage and commit with git add and git commit.
 5. Do not ask the user for file names or languages unless you cannot locate them.
 
 When done, give a brief summary and await the next instruction.
