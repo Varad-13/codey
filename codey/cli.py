@@ -77,7 +77,7 @@ def main():
         history, assistant_reply = process_history(history)
 
         # Display the assistant's response
-        print(f"\nAssistant: {assistant_reply}\n{'-'*60}")
+        print(f"\nCodey: {assistant_reply}\n{'-'*60}")
 
 
 if __name__ == "__main__":
