@@ -1,45 +1,45 @@
 name: Python Package
 
 on:
- push:
- branches:
- - master
- tags:
- - 'v*.*.*'
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*.*.*'
 
 jobs:
- build:
- runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
- steps:
- - name: Checkout code
- uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
- - name: Set up Python
- uses: actions/setup-python@v2
- with:
- python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
- - name: Install dependencies
- run: |
- python -m pip install --upgrade pip
- pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
- - name: Build package
- run: |
- python setup.py sdist bdist_wheel
+      - name: Build package
+        run: |
+          python setup.py sdist bdist_wheel
 
- - name: Create Release
- uses: softprops/action-gh-release@v1
- with:
- tag: ${{ github.ref }}
- files: |
- dist/*
- env:
- GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag: ${{ github.ref }}
+          files: |
+            dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
- - name: Version increment
- run: |
- git fetch --prune --unshallow
- git tag v$(python setup.py --version)
- git push origin --tags
+      - name: Version increment
+        run: |
+          git fetch --prune --unshallow
+          git tag v$(python setup.py --version)
+          git push origin --tags
