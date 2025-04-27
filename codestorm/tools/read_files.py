@@ -3,7 +3,7 @@ import os
 def read_files(file_list: str) -> str:
     """
     Read one or more files given a comma-separated list of filenames.
-    Return each files content numbered by line for easier partial edits.
+    Return each files content numbered by line for easier partial edits.
     """
     base_dir = os.getcwd()
     outputs = []
@@ -24,7 +24,7 @@ def read_files(file_list: str) -> str:
 schema = {
     "type": "function",
     "name": "read_files",
-    "description": "Read one or more files with lines numbered for easier partial editing.",
+    "description": "Read one or more files by comma-separated list.",
     "parameters": {
         "type": "object",
         "properties": {
