@@ -2,8 +2,19 @@ import json
 from .config import client, MODEL_NAME, SHOW_TOOL_CALLS, SHOW_TOOL_RESULTS, ENABLED_TOOLS
 from .tools import tools as tool_schemas, TOOL_MAP
 
+
 def call_tool(name, args):
-    return TOOL_MAP[name](**args)
+    """
+    Safely call the specified tool with arguments, catching exceptions.
+    """
+    try:
+        func = TOOL_MAP.get(name)
+        if not func:
+            return f"Error: Unknown tool '{name}'"
+        return func(**args)
+    except Exception as e:
+        return f"Error executing tool '{name}': {e}"
+
 
 def process_history(history):
     """
