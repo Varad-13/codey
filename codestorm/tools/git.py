@@ -76,7 +76,7 @@ schema = {
     "description": (
         "A tool to handle Git functionality. The commands and their relevant parameters are as follows:\n"
         "- `add`: Add files to the staging area. Specify files to add certain files or omit for all. You can also provide additional arguments.\n"
-        "- `commit`: Commit staged changes with a message. Commit messages must follow the One-Shot Programming format: `type: subject` (<=50 chars), blank line, optional detailed body. Types: feat, fix, docs, style, refactor, test, chore.\n"
+        "- `commit`: Commit staged changes with a message. Commit messages must follow the format: `type: subject` (<=50 chars), blank line, optional detailed body. Types: feat, fix, docs, style, refactor, test, chore.\n"
         "- `diff`: Show unstaged changes. Can include additional arguments.\n"
         "- `status`: Display the working directory status. Additional arguments can be supplied.\n"
         "- `log`: Show commit history. Additional arguments can be included.\n"
