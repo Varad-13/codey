@@ -5,6 +5,7 @@ from .edit_file import edit_file, schema as edit_file_schema
 from .create_file import create_file, schema as create_file_schema
 from .edit_file_partial import edit_file_partial, schema as edit_file_partial_schema
 from .edit_files_by_string import edit_files_by_string, schema as edit_files_by_string_schema
+from .git_tool import GitTool, git_tool_schema
 
 # Map tool names to their functions
 TOOL_MAP = {
@@ -13,6 +14,7 @@ TOOL_MAP = {
     "read_files": read_files,
     "edit_file": edit_file,
     "create_file": create_file,
+    "git_tool": GitTool(),  # Instantiate GitTool
 }
 
 # JSON schemas for model integration
@@ -22,4 +24,5 @@ tools = [
     read_files_schema,
     edit_file_schema,
     create_file_schema,
+    git_tool_schema,  # Add GitTool schema
 ]
