@@ -73,7 +73,17 @@ class Git:
 schema = {
     "type": "function",
     "name": "git",
-    "description": "A tool to handle Git functionality. The commands and their relevant parameters are as follows: \n- `add`: Add files to the staging area. Specify files to add certain files or omit for all. You can also provide additional arguments.\n- `commit`: Commit staged changes with a message. The message is mandatory and can be accompanied by additional arguments.\n- `diff`: Show unstaged changes. Can include additional arguments.\n- `status`: Display the working directory status. Additional arguments can be supplied.\n- `log`: Show commit history. Additional arguments can be included.\n- `checkout`: Switch to a specified branch. The branch parameter is necessary and can be followed by additional arguments.\n- `branch`: List, create, or delete branches.\n- `rm`: Remove files from the staging area. Requires the names of files to be removed and can include additional arguments.",
+    "description": (
+        "A tool to handle Git functionality. The commands and their relevant parameters are as follows:\n"
+        "- `add`: Add files to the staging area. Specify files to add certain files or omit for all. You can also provide additional arguments.\n"
+        "- `commit`: Commit staged changes with a message. The message is mandatory and can be accompanied by additional arguments. Commit messages should follow the One-Shot Programming format (reference: One-Shot Programming commit message guidelines).\n"
+        "- `diff`: Show unstaged changes. Can include additional arguments.\n"
+        "- `status`: Display the working directory status. Additional arguments can be supplied.\n"
+        "- `log`: Show commit history. Additional arguments can be included.\n"
+        "- `checkout`: Switch to a specified branch. The branch parameter is necessary and can be followed by additional arguments.\n"
+        "- `branch`: List, create, or delete branches based on provided arguments.\n"
+        "- `rm`: Remove files from the staging area. Requires the names of files to be removed and can include additional arguments."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
