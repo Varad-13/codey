@@ -6,7 +6,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from .chat_runner import process_history
 from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
-import codestorm.prompts
+import codey.prompts
 
 # Initialize prompt session and key bindings
 session = PromptSession()
@@ -31,7 +31,7 @@ def load_prompt(name, os_info, shell_info):
     and inject OS/shell info.
     """
     try:
-        with pkg_resources.open_text(codestorm.prompts, name) as f:
+        with pkg_resources.open_text(codey.prompts, name) as f:
             prompt = f.read()
         # Inject dynamic information into prompt text
         prompt = prompt.replace("{os}", os_info)

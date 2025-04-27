@@ -1,1 +1,1 @@
-recursive-include codestorm/prompts *.txt
+recursive-include codey/prompts *.txt

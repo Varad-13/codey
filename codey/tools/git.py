@@ -1,4 +1,4 @@
-from codestorm.tools.shell import shell
+from codey.tools.shell import shell
 
 class Git:
     def __init__(self):

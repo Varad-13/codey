@@ -1,5 +1,5 @@
 import os
-from codestorm.tools.shell import shell
+from codey.tools.shell import shell
 import os
 
 

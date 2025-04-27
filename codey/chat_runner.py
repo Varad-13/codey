@@ -5,8 +5,8 @@ from .config import client, MODEL_NAME, SHOW_TOOL_CALLS, SHOW_TOOL_RESULTS, ENAB
 from .tools import tools as tool_schemas, TOOL_MAP
 
 # Setup logging to file
-log_file = os.path.join(os.getcwd(), 'codestorm.log')
-logger = logging.getLogger('codestorm')
+log_file = os.path.join(os.getcwd(), 'codey.log')
+logger = logging.getLogger('codey')
 if not logger.handlers:
     logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler(log_file)

@@ -1,6 +1,6 @@
-# Codestorm
+# Codey
 
-Codestorm is a Python package providing AI tooling.
+Codey is a Python package providing AI tooling.
 
 ## Installation
 
@@ -13,7 +13,7 @@ pip install .
 After installation, run the CLI with:
 
 ```bash
-codestorm
+codey
 ```
 
 ## Configuration

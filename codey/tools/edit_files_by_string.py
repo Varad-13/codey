@@ -1,6 +1,6 @@
 import os
 import difflib
-from codestorm.tools.shell import shell
+from codey.tools.shell import shell
 
 def edit_files_by_string(file_list: str, search_string: str, replace_string: str, apply: bool = False) -> str:
     """

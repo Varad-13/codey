@@ -1,5 +1,5 @@
 import os
-from codestorm.tools.shell import shell
+from codey.tools.shell import shell
 
 def edit_file(filename: str, content: str) -> str:
     """

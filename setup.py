@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='codestorm',
+    name='codey',
     version='0.1.0',
-    packages=find_packages(include=['codestorm', 'codestorm.*']),
+    packages=find_packages(include=['codey', 'codey.*']),
     include_package_data=True,
     install_requires=[
         'openai',
@@ -12,14 +12,14 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'codestorm=codestorm.cli:main'
+            'codey=codey.cli:main'
         ]
     },
     author='Varad Joshi',
-    description='Codestorm package providing AI tooling.',
+    description='Codey is a in terminal AI assistant built for developers.',
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Operating System :: OS Independent',
+        'Operating System :: OS Independent', 
     ],
     python_requires='>=3.7',
 )
