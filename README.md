@@ -33,7 +33,6 @@ For comprehensive documentation, refer to the following sections:
 - [Configuration Documentation](docs/configuration.md)
 - [Architecture Overview](docs/architecture.md)
 - [Tools Documentation](docs/tools.md)
-- [Sanitization Documentation](docs/sanitization.md)
 - [Logging Documentation](docs/logging.md)
 - [Contributing Guidelines](docs/contributing.md)
 - [Frequently Asked Questions](docs/faq.md)
