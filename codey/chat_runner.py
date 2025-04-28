@@ -54,11 +54,7 @@ def process_history(history):
     if not any(item.get('type') == 'function_call' for item in history):
         tool_name = 'read_codebase'
         tool_args = {}
-        if SHOW_TOOL_CALLS:
-            print(f"Tool call: {tool_name}({tool_args})")
         result = call_tool(tool_name, tool_args)
-        if SHOW_TOOL_RESULTS:
-            print(f"Tool result: {result}")
         history.append({
             'type': 'function_call',
             'name': tool_name,
