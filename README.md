@@ -1,6 +1,6 @@
 # Codey
 
-Codey is a Python package providing AI tooling that enables developers to integrate advanced AI functionalities into their applications easily.
+Codey is a Python package providing AI tooling that enables developers to integrate advanced AI functionalities into their applications easily. More at https://codey.dev-genio.com/
 
 ## Key Features
 - **AI Power**: Leverage artificial intelligence to enhance your applications.
