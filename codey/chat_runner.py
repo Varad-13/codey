@@ -50,6 +50,27 @@ def process_history(history):
     Sends the conversation `history` to the model, executes any tool calls,
     and returns the updated history plus the assistant's text response.
     """
+    # Preload context on first call: only project tree
+    if not any(item.get('type') == 'function_call' for item in history):
+        tool_name = 'read_codebase'
+        tool_args = {}
+        if SHOW_TOOL_CALLS:
+            print(f"Tool call: {tool_name}({tool_args})")
+        result = call_tool(tool_name, tool_args)
+        if SHOW_TOOL_RESULTS:
+            print(f"Tool result: {result}")
+        history.append({
+            'type': 'function_call',
+            'name': tool_name,
+            'arguments': json.dumps(tool_args),
+            'call_id': 'init_codebase'
+        })
+        history.append({
+            'type': 'function_call_output',
+            'call_id': 'init_codebase',
+            'output': result
+        })
+
     while True:
         #logger.debug(f"LLM_REQUEST history={history}")
         resp = client.responses.create(
