@@ -22,9 +22,7 @@ def shell(command: str) -> str:
     )
 
     out = str(proc.stdout) + str(proc.stderr)
-    if proc.returncode == 0 and not out:
-        return f"Command `{command}` executed successfully."
-    return out
+    return f"Command `{command}` executed successfully:\n{out}"
 
 schema = {
     "type": "function",
