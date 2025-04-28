@@ -64,7 +64,7 @@ def main():
     while True:
         try:
             # Wrap prompt text in ANSI() so prompt_toolkit interprets the escapes
-            prompt_message = ANSI(f"{USER_COLOR}👤 You (Ctrl+N newline, Enter to submit): {RESET}")
+            prompt_message = ANSI(f"{USER_COLOR}You{RESET} (Ctrl+N newline): ")
             text = session.prompt(
                 prompt_message,
                 multiline=True,
@@ -84,8 +84,8 @@ def main():
         history, assistant_reply = process_history(history)
 
         # Display the assistant's response
-        print(f"\n{CODEY_COLOR}🤖 Codey: {assistant_reply}{RESET}")
-        print(f"{CODEY_COLOR}" + '-'*60 + f"{RESET}\n")
+        print(f"\nCodey:{CODEY_COLOR}{assistant_reply}{RESET}")
+        print(f"{TOOL_COLOR}" + '-'*60 + f"{RESET}\n")
 
 
 if __name__ == "__main__":

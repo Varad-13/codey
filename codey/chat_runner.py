@@ -32,7 +32,7 @@ def call_tool(name, args):
         if not func:
             msg = f"Error: Unknown tool '{name}'"
             logger.error(msg)
-            print(f"{TOOL_COLOR}⚠️  {msg}{RESET}")
+            print(f"{TOOL_COLOR}{msg}{RESET}")
             return msg
         result = func(**args)
         logger.debug(f"TOOL_RESULT name={name} result={result}")
@@ -42,7 +42,7 @@ def call_tool(name, args):
     except Exception as e:
         err = f"Error executing tool '{name}': {e}"
         logger.error(err)
-        print(f"{TOOL_COLOR}⚠️  {err}{RESET}")
+        print(f"{TOOL_COLOR}{err}{RESET}")
         return err
 
 def process_history(history):
