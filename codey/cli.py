@@ -3,16 +3,23 @@ import platform
 import sys
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.formatted_text import ANSI
 from .chat_runner import process_history
 from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
 import codey.prompts
 
+# ANSI color codes
+RESET      = "\033[0m"
+USER_COLOR = "\033[92m"  # neon green for user input
+TOOL_COLOR = "\033[95m"  # violet/purple for tool calls/results
+CODEY_COLOR = "\033[32m"  # green for Codey responses
+
 # Initialize prompt session and key bindings
 session = PromptSession()
 kb = KeyBindings()
 
-@kb.add('c-n')  # Ctrl+J is ASCII newline
+@kb.add('c-n')  # Ctrl+N → insert newline
 
 def _(event):
     """Ctrl+N → insert newline"""
@@ -52,14 +59,14 @@ def main():
 
     # Initialize conversation history with system prompt
     history = [{"role": "system", "content": system_prompt}]
-    if SHOW_SYSTEM_PROMPT:
-        print(f"System prompt loaded.\n{'-'*60}")
 
     # Main interaction loop
     while True:
         try:
+            # Wrap prompt text in ANSI() so prompt_toolkit interprets the escapes
+            prompt_message = ANSI(f"{USER_COLOR}👤 You (Ctrl+N newline, Enter to submit): {RESET}")
             text = session.prompt(
-                "You (Ctrl+N newline, Enter to submit): ",
+                prompt_message,
                 multiline=True,
                 key_bindings=kb
             )
@@ -77,7 +84,8 @@ def main():
         history, assistant_reply = process_history(history)
 
         # Display the assistant's response
-        print(f"\nCodey: {assistant_reply}\n{'-'*60}")
+        print(f"\n{CODEY_COLOR}🤖 Codey: {assistant_reply}{RESET}")
+        print(f"{CODEY_COLOR}" + '-'*60 + f"{RESET}\n")
 
 
 if __name__ == "__main__":
