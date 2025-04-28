@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
 import json
 import os
 import logging
-
 from .config import client, MODEL_NAME, SHOW_TOOL_CALLS, SHOW_TOOL_RESULTS, ENABLED_TOOLS
 from .tools import tools as tool_schemas, TOOL_MAP
-from .sanitize import sanitize_payload
 
 # Setup logging to file
 log_file = os.path.join(os.getcwd(), 'codey.log')
@@ -21,25 +18,17 @@ if not logger.handlers:
 def call_tool(name, args):
     """
     Safely call the specified tool with arguments, catching exceptions.
-    Sanitizes only the LLM‐provided arguments before invoking.
     """
-    logger.debug(f"RAW_TOOL_CALL name={name} args={args}")
-
-    # Sanitize all string inputs in args
-    safe_args = sanitize_payload(args)
-    logger.debug(f"SANITIZED_TOOL_CALL name={name} safe_args={safe_args}")
-
+    logger.debug(f"TOOL_CALL name={name} args={args}")
     try:
         func = TOOL_MAP.get(name)
         if not func:
             msg = f"Error: Unknown tool '{name}'"
             logger.error(msg)
             return msg
-
-        result = func(**safe_args)
+        result = func(**args)
         logger.debug(f"TOOL_RESULT name={name} result={result}")
         return result
-
     except Exception as e:
         err = f"Error executing tool '{name}': {e}"
         logger.error(err)
@@ -88,13 +77,13 @@ def process_history(history):
         if tool_calls:
             logger.debug(f"LLM_TOOL_CALLS {tool_calls}")
             for call in tool_calls:
-                raw_args = json.loads(call.arguments)
+                args = json.loads(call.arguments)
                 if ENABLED_TOOLS and call.name not in ENABLED_TOOLS:
                     continue
                 if SHOW_TOOL_CALLS:
-                    print(f"Tool call: {call.name}({raw_args})")
+                    print(f"Tool call: {call.name}({args})")
 
-                result = call_tool(call.name, raw_args)
+                result = call_tool(call.name, args)
 
                 if SHOW_TOOL_RESULTS:
                     print(f"Tool result: {result}")
@@ -111,7 +100,6 @@ def process_history(history):
                 })
             continue
 
-        # Append the raw assistant response without additional sanitization
         assistant_text = resp.output_text
         logger.debug(f"LLM_OUTPUT_TEXT {assistant_text}")
         history.append({'role': 'assistant', 'content': assistant_text})
