@@ -19,16 +19,16 @@ CODEY_COLOR = "\033[32m"  # green for Codey responses
 session = PromptSession()
 kb = KeyBindings()
 
-@kb.add('c-n')  # Ctrl+N  insert newline
+@kb.add('c-n')  # Ctrl+N insert newline
 
 def _(event):
-    """Ctrl+N  insert newline"""
+    """Ctrl+N insert newline"""
     event.current_buffer.insert_text('\n')
 
 @kb.add('enter')
 
 def _(event):
-    """Enter  submit buffer"""
+    """Enter submit buffer"""
     event.app.exit(result=event.current_buffer.text)
 
 
