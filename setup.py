@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='codey',
-    version='0.1.2',
+    version='0.1.3',
     packages=find_packages(include=['codey', 'codey.*']),
     include_package_data=True,
     install_requires=[
@@ -19,7 +19,7 @@ setup(
     description='Codey is a in terminal AI assistant built for developers.',
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Operating System :: OS Independent', 
+        'Operating System :: OS Independent',
     ],
     python_requires='>=3.7',
 )
