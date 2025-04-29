@@ -103,7 +103,7 @@ def main():
         history, assistant_reply = process_history(history)
 
         # Display the assistant's response
-        print(f"\nCodey:{CODEY_COLOR}{assistant_reply}{RESET}")
+        print(f"\nCodey: {CODEY_COLOR}{assistant_reply}{RESET}")
         print(f"{TOOL_COLOR}" + '-'*60 + f"{RESET}\n")
 
 

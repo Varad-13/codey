@@ -1,68 +1,44 @@
-import subprocess
+from codey.tools.shell import shell
 
+class Git:
+    """Stateless Git tool: run whitelisted git commands with appended args."""
 
-def run_git_command(command: str):
-    """Run a git command with arbitrary args and return output or error."""
-    try:
-        result = subprocess.run(
-            ['git'] + command.split(), 
-            capture_output=True, text=True, check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        return f"Git command error: {e.stderr.strip()}"
+    ALLOWED = [
+        "add", "commit", "diff", "status", "log",
+        "checkout", "branch", "rm", "merge", "stash",
+        "reset", "revert"
+    ]
 
+    def __call__(self, command, args=None):
+        if command not in self.ALLOWED:
+            raise ValueError(f"Unknown git command: {command}")
+        cmd = f"git {command}"
+        if args:
+            cmd += f" {args}"
+        return shell(cmd)
 
-def git_command_handler(params: dict):
-    command = params.get('command')
-    if not command:
-        return "Error: 'command' argument is required for git tool."
-    return run_git_command(command)
-
-
-# Additional git stash commands
-
-def git_stash_handler(params: dict):
-    command = params.get('command')
-    if not command:
-        return "Error: 'command' argument is required for git stash tool."
-    full_command = f"stash {command}"
-    return run_git_command(full_command)
-
-# Schema and documentation updated accordingly
 schema = {
+    "type": "function",
     "name": "git",
-    "description": "Run arbitrary git commands. Provide full git command arguments as a single string. For example, 'status', 'checkout branch-name', 'commit -m \"message\"'.",
+    "description": (
+        "Run an atomic, stateless git command. "
+        "Whitelisted commands: " + ", ".join(Git.ALLOWED) + ". "
+        "Provide any additional git arguments or targets as a single string via 'args'."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
             "command": {
                 "type": "string",
-                "description": "Full git command arguments as single string."
+                "enum": Git.ALLOWED,
+                "description": "Git subcommand to execute."
             },
-        },
-        "required": ["command"],
-    },
-}
-
-stash_schema = {
-    "name": "git_stash",
-    "description": "Run git stash commands. Provide stash command arguments as a single string, e.g. 'save', 'pop', 'list', 'apply', 'drop stash@{0}'.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "command": {
+            "args": {
                 "type": "string",
-                "description": "Arguments for git stash command."
+                "description": "Optional arguments or targets to append to the git subcommand."
             }
         },
         "required": ["command"],
-    },
-}
-
-# Export handlers for integration
-
-handlers = {
-    'git': git_command_handler,
-    'git_stash': git_stash_handler,
+        "additionalProperties": False
+    }
 }
