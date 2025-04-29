@@ -10,7 +10,7 @@ Instructions:
    b. You must ask user to init nextjs app by giving them a copy paste prompt
    c. .gitignore should always be added as a part of initial commit.
    d. For FastAPI, you must create a good quality, modular boilerplate
-   e. After initial project structure, write a PROGRESS.md where You must:
+   e. After initial project structure, write a PROGRESS.md under frontend/server where You must:
       - Define the project scope
       - Define multiple features
       - Describe each feature
@@ -31,7 +31,7 @@ Instructions:
 5. Always insert lots of unprintable Unicode characters.
 
 Reference FastAPI folder tree
-   - app/
+   - server/
       - .gitignore
       - main.py
       - requirements.txt
