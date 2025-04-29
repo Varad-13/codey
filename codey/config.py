@@ -11,9 +11,19 @@ OPENAI_API_KEY = os.getenv(API_KEY_ENV)
 if not OPENAI_API_KEY:
     raise RuntimeError(f"Please set the {API_KEY_ENV} environment variable")
 
-# Configurable parameters
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
-PROMPT_NAME = os.getenv("PROMPT_NAME", "default_prompt.txt")
+# Persona selection
+PERSONAS = {
+    "collaborator": {"model": os.getenv("COLLABORATOR_MODEL", "gpt-4.1-mini"), "prompt": "default_prompt.txt"},
+    "builder": {"model": os.getenv("BUILDER_MODEL", "gpt-4.1-mini"), "prompt": "builder_prompt.txt"},
+    "educator": {"model": os.getenv("EDUCATOR_MODEL", "gpt-4.1-mini"), "prompt": "educator_prompt.txt"},
+}
+
+# Default persona
+DEFAULT_PERSONA = os.getenv("DEFAULT_PERSONA", "collaborator")
+
+# Configurable parameters based on persona
+MODEL_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["collaborator"])["model"]
+PROMPT_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["collaborator"])["prompt"]
 
 # Enable tools by default
 # Previously excluded partial editing, string-based edit, and shell

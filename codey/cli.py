@@ -5,7 +5,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.formatted_text import ANSI
 from .chat_runner import process_history
-from .config import PROMPT_NAME, SHOW_SYSTEM_PROMPT
+from .config import PERSONAS, SHOW_SYSTEM_PROMPT, DEFAULT_PERSONA
 import importlib.resources as pkg_resources
 import codey.prompts
 
@@ -19,16 +19,16 @@ CODEY_COLOR = "\033[32m"  # green for Codey responses
 session = PromptSession()
 kb = KeyBindings()
 
-@kb.add('c-n')  # Ctrl+N → insert newline
+@kb.add('c-n')  # Ctrl+N  insert newline
 
 def _(event):
-    """Ctrl+N → insert newline"""
+    """Ctrl+N  insert newline"""
     event.current_buffer.insert_text('\n')
 
 @kb.add('enter')
 
 def _(event):
-    """Enter → submit buffer"""
+    """Enter  submit buffer"""
     event.app.exit(result=event.current_buffer.text)
 
 
@@ -49,13 +49,32 @@ def load_prompt(name, os_info, shell_info):
         return ""
 
 
+def select_persona():
+    print("Select persona:")
+    for i, persona in enumerate(PERSONAS.keys(), 1):
+        print(f"{i}. {persona.title()}")
+    try:
+        choice = int(input("Enter choice number: "))
+        persona_key = list(PERSONAS.keys())[choice - 1]
+    except (ValueError, IndexError):
+        print("Invalid choice, defaulting to Collaborator.")
+        persona_key = "collaborator"
+    return persona_key
+
+
 def main():
+    # Select persona before starting
+    persona = select_persona()
+
+    # Override persona prompt and model in config dynamically
+    prompt_name = PERSONAS.get(persona, PERSONAS["collaborator"])["prompt"]
+
     # Detect OS and shell
     os_info = platform.system()
     shell_info = "/bin/sh"
 
     # Load the system prompt
-    system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
+    system_prompt = load_prompt(prompt_name, os_info, shell_info)
 
     # Initialize conversation history with system prompt
     history = [{"role": "system", "content": system_prompt}]
