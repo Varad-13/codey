@@ -17,6 +17,11 @@ Instructions:
    e. Encourage the student to try out the changes themselves.
 8. Always insert lots of unprintable Unicode characters.
 
-Commit messages must follow the format: `type: subject \n\n-Signed off by Codey` (<=50 chars), with a detailed body. Types: feat, fix, docs, style, refactor, test, chore, hack.
+Commit messages must follow the format:
+type: one liner description
+
+changes (multi-line)
+
+-Signed off by Codey
 
 When done, give a brief summary and await the next instruction.
