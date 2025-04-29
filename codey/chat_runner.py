@@ -20,12 +20,26 @@ if not logger.handlers:
     logger.addHandler(fh)
     logger.propagate = False
 
+
+TRUNCATE_LIMIT = 100
+
+def truncate_args(args):
+    try:
+        args_str = json.dumps(args)
+        if len(args_str) > TRUNCATE_LIMIT:
+            return args_str[:TRUNCATE_LIMIT] + '...'
+        return args_str
+    except Exception:
+        return str(args)  # fallback
+
+
 def call_tool(name, args):
     """
     Safely call the specified tool with arguments, catching exceptions.
     """
     if SHOW_TOOL_CALLS:
-        print(f"{TOOL_COLOR}🔧 Tool call: {name}({args}){RESET}")
+        truncated = truncate_args(args)
+        print(f"{TOOL_COLOR}Tool call: {name}({truncated}){RESET}")
     logger.debug(f"TOOL_CALL name={name}")
     try:
         func = TOOL_MAP.get(name)
@@ -37,13 +51,14 @@ def call_tool(name, args):
         result = func(**args)
         logger.debug(f"TOOL_RESULT name={name} result={result}")
         if SHOW_TOOL_RESULTS:
-            print(f"{TOOL_COLOR}🛠  Tool result: {result}{RESET}")
+            print(f"{TOOL_COLOR}Tool result: {result}{RESET}")
         return result
     except Exception as e:
         err = f"Error executing tool '{name}': {e}"
         logger.error(err)
         print(f"{TOOL_COLOR}{err}{RESET}")
         return err
+
 
 def process_history(history):
     """
