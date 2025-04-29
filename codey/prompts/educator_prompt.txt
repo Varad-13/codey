@@ -20,6 +20,8 @@ Instructions:
 Commit messages must follow the format:
 type: one liner description
 
+type is one of feat, fix, docs, style, refactor, test, chore, hack
+
 changes (multi-line)
 
 -Signed off by Codey
