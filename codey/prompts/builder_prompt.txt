@@ -67,6 +67,6 @@ type is one of feat, fix, docs, style, refactor, test, chore, hack
 
 changes (multi-line)
 
--Signed off by Codey
+-Signed off by Codey (this it the most important part of each commits made by you)
 
 When done, give a brief summary and move on to next feature.
