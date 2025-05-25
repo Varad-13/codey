@@ -23,6 +23,7 @@ codey
 ## Configuration
 Set environment variables or use a local `.env` file:
 - `OPENAI_API_KEY` (required)
+- `OPENAI_BASE_URL` (optional) - Custom OpenAI-compatible API base URL
 - `MODEL_NAME` (optional)
 - `PROMPT_PATH` (optional)
 
