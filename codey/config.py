@@ -8,6 +8,7 @@ load_dotenv()
 
 API_KEY_ENV = "OPENAI_API_KEY"
 OPENAI_API_KEY = os.getenv(API_KEY_ENV)
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")  # Optional custom base URL
 if not OPENAI_API_KEY:
     raise RuntimeError(f"Please set the {API_KEY_ENV} environment variable")
 
@@ -43,4 +44,7 @@ SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
 SHOW_SYSTEM_PROMPT = True
 
 # Initialize OpenAI client
-client = OpenAI(api_key=OPENAI_API_KEY)
+if OPENAI_BASE_URL:
+    client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
+else:
+    client = OpenAI(api_key=OPENAI_API_KEY)
