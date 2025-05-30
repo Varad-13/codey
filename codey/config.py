@@ -17,6 +17,7 @@ PERSONAS = {
     "collaborator": {"model": os.getenv("COLLABORATOR_MODEL", "gpt-4.1-mini"), "prompt": "default_prompt.txt"},
     "builder": {"model": os.getenv("BUILDER_MODEL", "gpt-4.1-mini"), "prompt": "builder_prompt.txt"},
     "educator": {"model": os.getenv("EDUCATOR_MODEL", "gpt-4.1-mini"), "prompt": "educator_prompt.txt"},
+    "static apps": {"model": os.getenv("EDUCATOR_MODEL", "gpt-4.1-mini"), "prompt": "static_app.txt"},
 }
 
 # Default persona
