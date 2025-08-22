@@ -8,16 +8,20 @@ from .tools import tools as tool_schemas, TOOL_MAP
 RESET       = "\033[0m"
 TOOL_COLOR  = "\033[95m"  # violet/purple for tool calls/results
 CODEY_COLOR = "\033[32m"  # green for Codey responses (unused here)
-
+ENABLE_LOGGING = False
 # Setup logging to file
 log_file = os.path.join(os.getcwd(), 'codey.log')
 logger = logging.getLogger('codey')
-if not logger.handlers:
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(log_file)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+if not logger.handlers:  # avoid duplicate handlers
+    if ENABLE_LOGGING:
+        log_file = os.path.join(os.getcwd(), 'codey.log')
+        logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler(log_file)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+    else:
+        logger.addHandler(logging.NullHandler())  # disables file output
     logger.propagate = False
 
 TRUNCATE_LIMIT = 100
