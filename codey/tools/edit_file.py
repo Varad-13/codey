@@ -67,26 +67,32 @@ def edit_file(filename: str, operation: str, target: str = None, replacement: st
 
 
 schema = {
-    "name": "edit_file",
-    "description": "Perform CRUD-like edits on a text file.",
-    "input": {
-        "type": "object",
-        "properties": {
-            "filename": {"type": "string", "description": "Path to the file."},
-            "operation": {
-                "type": "string",
-                "enum": ["read", "replace", "insert_after", "delete"],
-                "description": "Type of operation to perform."
+    "type": "function",
+    "function": {
+        "name": "edit_file",
+        "description": "Perform CRUD-like edits on a text file.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "Path to the file."
+                },
+                "operation": {
+                    "type": "string",
+                    "enum": ["read", "replace", "insert_after", "delete"],
+                    "description": "Type of operation to perform."
+                },
+                "target": {
+                    "type": "string",
+                    "description": "Target string/line to match for replace/insert/delete."
+                },
+                "replacement": {
+                    "type": "string",
+                    "description": "New text for replace or insert operations."
+                }
             },
-            "target": {
-                "type": "string",
-                "description": "Target string/line to match for replace/insert/delete."
-            },
-            "replacement": {
-                "type": "string",
-                "description": "New text for replace or insert operations."
-            }
-        },
-        "required": ["filename", "operation"]
+            "required": ["filename", "operation"]
+        }
     }
 }
