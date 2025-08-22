@@ -68,7 +68,7 @@ def main():
 
     # Override persona prompt and model in config dynamically
     prompt_name = PERSONAS.get(persona, PERSONAS["gpt-5"])["prompt"]
-
+    model = PERSONAS.get(persona, PERSONAS["gpt-5"])["model"]
     # Detect OS and shell
     os_info = platform.system()
     shell_info = "/bin/sh"
@@ -100,7 +100,7 @@ def main():
 
         # Append user message and process
         history.append({"role": "user", "content": text})
-        history, assistant_reply = process_history(history)
+        history, assistant_reply = process_history(history, model)
 
         # Display the assistant's response
         print(f"\nCodey: {CODEY_COLOR}{assistant_reply}{RESET}")

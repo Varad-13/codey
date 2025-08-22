@@ -59,7 +59,7 @@ def call_tool(name, args):
         return err
 
 
-def process_history(history):
+def process_history(history, model=MODEL_NAME):
     """
     Sends the conversation `history` to the model, executes any tool calls,
     and returns the updated history plus the assistant's text response.
@@ -69,7 +69,7 @@ def process_history(history):
         #logger.debug(f"LLM_REQUEST history={history}")
         #logger.debug(f"LLM_REQUEST model={MODEL_NAME}")
         resp = client.chat.completions.create(
-            model=MODEL_NAME,
+            model=model,
             messages=history,
             tools = [
                 t for t in tool_schemas
