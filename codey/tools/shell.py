@@ -26,14 +26,15 @@ def shell(command: str) -> str:
 
 schema = {
     "type": "function",
-    "name": "shell",
-    "description": "Run a shell/PowerShell command, non-interactive.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "command": {"type": "string"}
-        },
-        "required": ["command"],
-        "additionalProperties": False
+    "function": {
+        "name": "shell",
+        "description": "Run a shell/PowerShell command, non-interactive.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {"type": "string"}
+            },
+            "required": ["command"]
+        }
     }
 }

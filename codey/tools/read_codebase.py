@@ -23,12 +23,13 @@ def read_codebase() -> str:
 
 schema = {
     "type": "function",
-    "name": "read_codebase",
-    "description": "List files in the git repository (inits if empty).",
-    "parameters": {
-        "type": "object",
-        "properties": {},
-        "required": [],
-        "additionalProperties": False
+    "function": {
+        "name": "read_codebase",
+        "description": "List files in the git repository (inits if empty).",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     }
 }

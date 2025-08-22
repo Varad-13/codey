@@ -19,26 +19,28 @@ class Git:
 
 schema = {
     "type": "function",
-    "name": "git",
-    "description": (
-        "Run an atomic, stateless git command. "
-        "Whitelisted commands: " + ", ".join(Git.ALLOWED) + ". "
-        "Provide any additional git arguments or targets as a single string via 'args'."
-    ),
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "command": {
-                "type": "string",
-                "enum": Git.ALLOWED,
-                "description": "Git subcommand to execute."
+    "function": {
+        "name": "git",
+        "description": (
+            "Run an atomic, stateless git command. "
+            "Whitelisted commands: " + ", ".join(Git.ALLOWED) + ". "
+            "Provide any additional git arguments or targets as a single string via 'args'."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "enum": Git.ALLOWED,
+                    "description": "Git subcommand to execute."
+                },
+                "args": {
+                    "type": "string",
+                    "description": "Optional arguments or targets to append to the git subcommand."
+                }
             },
-            "args": {
-                "type": "string",
-                "description": "Optional arguments or targets to append to the git subcommand."
-            }
-        },
-        "required": ["command"],
-        "additionalProperties": False
+            "required": ["command"],
+            "additionalProperties": False
+        }
     }
 }

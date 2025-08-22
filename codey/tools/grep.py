@@ -34,14 +34,19 @@ def grep(term: str) -> str:
 
 schema = {
     "type": "function",
-    "name": "grep",
-    "description": "Search tracked files for a given term and return file paths, line numbers, and matching content.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "term": {"type": "string", "description": "The search term to look for in files."},
-        },
-        "required": ["term"],
-        "additionalProperties": False
+    "function": {
+        "name": "grep",
+        "description": "Search tracked files for a given term and return file paths, line numbers, and matching content.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "term": {
+                    "type": "string",
+                    "description": "The search term to look for in files."
+                }
+            },
+            "required": ["term"],
+            "additionalProperties": False
+        }
     }
 }

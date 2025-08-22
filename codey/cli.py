@@ -58,7 +58,7 @@ def select_persona():
         persona_key = list(PERSONAS.keys())[choice - 1]
     except (ValueError, IndexError):
         print("Invalid choice, defaulting to Collaborator.")
-        persona_key = "collaborator"
+        persona_key = "gpt-5"
     return persona_key
 
 
@@ -67,7 +67,7 @@ def main():
     persona = select_persona()
 
     # Override persona prompt and model in config dynamically
-    prompt_name = PERSONAS.get(persona, PERSONAS["collaborator"])["prompt"]
+    prompt_name = PERSONAS.get(persona, PERSONAS["gpt-5"])["prompt"]
 
     # Detect OS and shell
     os_info = platform.system()

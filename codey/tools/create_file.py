@@ -24,15 +24,17 @@ def create_file(filename: str, content: str) -> str:
 
 schema = {
     "type": "function",
-    "name": "create_file",
-    "description": "Create a new text file (and any parent dirs) with given content.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "filename": {"type": "string"},
-            "content": {"type": "string"}
-        },
-        "required": ["filename", "content"],
-        "additionalProperties": False
+    "function": {
+        "name": "create_file",
+        "description": "Create a new text file (and any parent dirs) with given content.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "filename": {"type": "string"},
+                "content": {"type": "string"}
+            },
+            "required": ["filename", "content"],
+            "additionalProperties": False
+        }
     }
 }

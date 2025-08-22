@@ -31,14 +31,19 @@ def calculate(expression: str) -> str:
 
 schema = {
     "type": "function",
-    "name": "calculate",
-    "description": "Evaluate a mathematical expression safely.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "expression": {"type": "string"}
-        },
-        "required": ["expression"],
-        "additionalProperties": False
+    "function": {
+        "name": "calculate",
+        "description": "Evaluate a mathematical expression safely.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string",
+                    "description": "The mathematical expression to evaluate"
+                }
+            },
+            "required": ["expression"],
+            "additionalProperties": False
+        }
     }
 }

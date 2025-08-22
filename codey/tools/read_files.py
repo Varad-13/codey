@@ -24,14 +24,18 @@ def read_files(file_list: str) -> str:
 
 schema = {
     "type": "function",
-    "name": "read_files",
-    "description": "Read files by comma-separated list, returning numbered lines for each file.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "file_list": {"type": "string", "description": "Comma-separated list of file paths to read."}
-        },
-        "required": ["file_list"],
-        "additionalProperties": False
+    "function": {
+        "name": "read_files",
+        "description": "Read files by comma-separated list, returning numbered lines for each file.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_list": {
+                    "type": "string",
+                    "description": "Comma-separated list of file paths to read."
+                }
+            },
+            "required": ["file_list"]
+        }
     }
 }

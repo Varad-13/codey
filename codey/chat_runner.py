@@ -20,7 +20,6 @@ if not logger.handlers:
     logger.addHandler(fh)
     logger.propagate = False
 
-
 TRUNCATE_LIMIT = 100
 
 def truncate_args(args):
@@ -65,55 +64,54 @@ def process_history(history):
     Sends the conversation `history` to the model, executes any tool calls,
     and returns the updated history plus the assistant's text response.
     """
-    # Preload context on first call: only project tree
-    if not any(item.get('type') == 'function_call' for item in history):
-        tool_name = 'read_codebase'
-        tool_args = {}
-        result = call_tool(tool_name, tool_args)
-        history.append({
-            'type': 'function_call',
-            'name': tool_name,
-            'arguments': json.dumps(tool_args),
-            'call_id': 'init_codebase'
-        })
-        history.append({
-            'type': 'function_call_output',
-            'call_id': 'init_codebase',
-            'output': result
-        })
 
     while True:
         #logger.debug(f"LLM_REQUEST history={history}")
-        resp = client.responses.create(
+        #logger.debug(f"LLM_REQUEST model={MODEL_NAME}")
+        resp = client.chat.completions.create(
             model=MODEL_NAME,
-            input=history,
-            tools=[t for t in tool_schemas if not ENABLED_TOOLS or t['name'] in ENABLED_TOOLS],
+            messages=history,
+            tools = [
+                t for t in tool_schemas
+                if not ENABLED_TOOLS or t.get("function", {}).get("name") in ENABLED_TOOLS
+            ],
             tool_choice="auto"
         )
         #logger.debug(f"LLM_RAW_RESPONSE {resp}")
 
-        # Handle any function calls the model wants to make
-        calls = [c for c in getattr(resp, 'output', []) if getattr(c, 'type', None) == 'function_call']
-        if calls:
-            for call in calls:
-                args = json.loads(call.arguments)
-                if ENABLED_TOOLS and call.name not in ENABLED_TOOLS:
-                    continue
-                result = call_tool(call.name, args)
-                history.append({
-                    'type': 'function_call',
-                    'name': call.name,
-                    'arguments': call.arguments,
-                    'call_id': call.call_id
-                })
-                history.append({
-                    'type': 'function_call_output',
-                    'call_id': call.call_id,
-                    'output': result
-                })
-            continue
+        assistant_msg = resp.choices[0].message
+        tool_calls = getattr(assistant_msg, "tool_calls", None)
 
-        assistant_text = getattr(resp, 'output_text', '')
+        if tool_calls:
+            # Append assistant's tool call request
+            history.append({
+                "role": "assistant",
+                "tool_calls": [call.to_dict() for call in tool_calls],
+                "content": None
+            })
+
+            for call in tool_calls:
+                try:
+                    args = json.loads(call.function.arguments)
+                except Exception:
+                    args = {}
+
+                if ENABLED_TOOLS and call.function.name not in ENABLED_TOOLS:
+                    continue
+
+                result = call_tool(call.function.name, args)
+
+                # Append tool result
+                history.append({
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "name": call.function.name,
+                    "content": json.dumps(result)
+                })
+            continue  # loop again with updated history
+
+        # Assistant gave final text
+        assistant_text = assistant_msg.content or ""
         #logger.debug(f"LLM_OUTPUT_TEXT {assistant_text}")
-        history.append({'role': 'assistant', 'content': assistant_text})
+        history.append({"role": "assistant", "content": assistant_text})
         return history, assistant_text
