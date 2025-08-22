@@ -24,7 +24,7 @@ if not logger.handlers:  # avoid duplicate handlers
         logger.addHandler(logging.NullHandler())  # disables file output
     logger.propagate = False
 
-TRUNCATE_LIMIT = 100
+TRUNCATE_LIMIT = 250
 
 def truncate_args(args):
     try:
