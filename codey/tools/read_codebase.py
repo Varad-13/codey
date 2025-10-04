@@ -17,8 +17,7 @@ def read_codebase() -> str:
     files = [f.strip() for f in proc.stdout.splitlines() if f.strip()]
     if not files:
         # Empty repo initialize and report
-        subprocess.run(["git", "init"], check=True, cwd=base_dir)
-        return "Initialized empty git repository. No files to list yet."
+        return "No files to list yet. Ask user to initialize within an existing/new repository."
     return "\n".join(files)
 
 schema = {
