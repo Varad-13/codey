@@ -64,11 +64,9 @@ def select_persona():
 
 def main():
     # Select persona before starting
-    persona = select_persona()
-
     # Override persona prompt and model in config dynamically
-    prompt_name = PERSONAS.get(persona, PERSONAS["gpt-5"])["prompt"]
-    model = PERSONAS.get(persona, PERSONAS["gpt-5"])["model"]
+    prompt_name = PERSONAS["gpt-5"]["prompt"]
+    model = PERSONAS["gpt-5"]["model"]
     # Detect OS and shell
     os_info = platform.system()
     shell_info = "/bin/sh"

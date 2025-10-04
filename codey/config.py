@@ -14,9 +14,6 @@ if not OPENAI_API_KEY:
 
 # Persona selection
 PERSONAS = {
-    "qwen": {"model": os.getenv("UNLOCKED_MODEL", "qwen/qwen3-coder"), "prompt": "codey-unlocked.txt"},
-    "deepseek": {"model": os.getenv("UNLOCKED_MODEL", "deepseek/deepseek-chat-v3-0324"), "prompt": "codey-unlocked.txt"},
-    "claude": {"model": os.getenv("UNLOCKED_MODEL", "anthropic/claude-sonnet-4"), "prompt": "codey-unlocked.txt"},
     "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "openai/gpt-5-mini"), "prompt": "codey-unlocked.txt"},
 }
 
@@ -31,7 +28,7 @@ PROMPT_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["gpt-5"])["prompt"]
 # Previously excluded partial editing, string-based edit, and shell
 ENABLED_TOOLS = os.getenv(
     "ENABLED_TOOLS",
-    "read_codebase,read_files,calculate,create_file,edit_file,git,grep,shell"
+    "read_codebase,read_files,calculate,create_file,edit_file,git,grep"
 ).split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
