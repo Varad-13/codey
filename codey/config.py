@@ -14,7 +14,7 @@ if not OPENAI_API_KEY:
 
 # Persona selection
 PERSONAS = {
-    "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "openai/gpt-5-mini"), "prompt": "codey-unlocked.txt"},
+    "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "openai/gpt-5.1-codex-mini"), "prompt": "codey-unlocked.txt"},
 }
 
 # Default persona
