@@ -1,9 +1,9 @@
 """
 Web browser tool powered by Playwright.
 
-Install once:
-    pip install playwright
-    playwright install chromium
+All browser operations run in a dedicated background thread so Playwright's
+internal asyncio event loop never touches the main thread — critical for
+prompt_toolkit compatibility on Python 3.12+.
 
 The browser opens in headed mode by default so the user can watch.
 Set CODEY_WEB_HEADLESS=true to run invisibly.
@@ -11,17 +11,19 @@ Set CODEY_WEB_HEADLESS=true to run invisibly.
 
 import atexit
 import base64
+import concurrent.futures
 import os
 import time
 from pathlib import Path
 
-_pw_ctx = None   # playwright instance
-_browser = None
-_page = None
+# Single-threaded executor: all Playwright work happens here, never in main thread
+_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="codey-playwright")
+
+# Browser state — owned exclusively by the executor thread
+_state: dict = {}
 
 
-def _ensure_chromium():
-    """Run `playwright install chromium` if the browser executable is missing."""
+def _ensure_chromium() -> None:
     import subprocess
     import sys
     print("Playwright: Chromium not found — downloading now (one-time ~120 MB)...")
@@ -36,52 +38,65 @@ def _ensure_chromium():
         )
 
 
-def _get_page():
-    global _pw_ctx, _browser, _page
-    if _page is not None:
-        return _page
+def _init_browser() -> None:
+    """Initialize Playwright inside the executor thread."""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        raise RuntimeError(
-            "Playwright is not installed.\n"
-            "Run: pip install playwright"
-        )
+        raise RuntimeError("Playwright is not installed.\nRun: pip install playwright")
+
     headless = os.getenv("CODEY_WEB_HEADLESS", "false").lower() == "true"
 
     def _launch():
-        global _pw_ctx, _browser, _page
-        _pw_ctx = sync_playwright().__enter__()
-        _browser = _pw_ctx.chromium.launch(headless=headless)
-        _page = _browser.new_page()
-        atexit.register(_cleanup)
-        return _page
+        pw = sync_playwright().__enter__()
+        browser = pw.chromium.launch(headless=headless)
+        page = browser.new_page()
+        _state['pw'] = pw
+        _state['browser'] = browser
+        _state['page'] = page
 
     try:
-        return _launch()
+        _launch()
     except Exception as exc:
         err = str(exc).lower()
         if any(k in err for k in ("executable", "not found", "install playwright", "browser")):
             _ensure_chromium()
-            return _launch()
-        raise
+            _launch()
+        else:
+            raise
 
 
-def _cleanup():
-    global _pw_ctx, _browser, _page
+def _get_page():
+    """Return the live Page; initialize browser on first call. Runs in executor thread."""
+    if 'page' not in _state:
+        _init_browser()
+    return _state['page']
+
+
+def _cleanup_in_thread() -> None:
     try:
-        if _browser:
-            _browser.close()
-        if _pw_ctx:
-            _pw_ctx.__exit__(None, None, None)
+        if _state.get('browser'):
+            _state['browser'].close()
+        if _state.get('pw'):
+            _state['pw'].__exit__(None, None, None)
     except Exception:
         pass
-    _pw_ctx = _browser = _page = None
+    _state.clear()
+
+
+def _cleanup() -> None:
+    """atexit handler — runs in main thread, delegates to executor."""
+    try:
+        _executor.submit(_cleanup_in_thread).result(timeout=5)
+    except Exception:
+        pass
+    _executor.shutdown(wait=False)
+
+
+atexit.register(_cleanup)
 
 
 # ── Tool result sentinel for images ─────────────────────────────────────────
-# chat_runner detects dicts with "__image__" and sends them as multimodal
-# content blocks so vision models can actually see the screenshot.
 
 def _img_result(page, label: str) -> dict:
     shots_dir = Path(os.getcwd()) / ".codey_screenshots"
@@ -93,6 +108,66 @@ def _img_result(page, label: str) -> dict:
         "__image__": f"data:image/png;base64,{b64}",
         "text": f"{label} — saved to {path}",
     }
+
+
+def _web_action(action, url, selector, text, js, direction, amount, timeout):
+    """All browser work runs here — inside the executor thread."""
+    if action == "close":
+        _cleanup_in_thread()
+        return "Browser closed."
+
+    page = _get_page()
+
+    if action == "navigate":
+        if not url:
+            return "Error: 'url' is required for action=navigate."
+        resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout)
+        status = resp.status if resp else "unknown"
+        return f"Navigated to {url} — HTTP {status}, title: \"{page.title()}\""
+
+    elif action == "screenshot":
+        return _img_result(page, f"Screenshot of {page.url}")
+
+    elif action == "get_text":
+        return page.inner_text("body")
+
+    elif action == "get_html":
+        return page.content()
+
+    elif action == "click":
+        if not selector:
+            return "Error: 'selector' is required for action=click."
+        page.click(selector, timeout=timeout)
+        return f"Clicked '{selector}'. Current URL: {page.url}"
+
+    elif action == "fill":
+        if not selector:
+            return "Error: 'selector' is required for action=fill."
+        page.fill(selector, text, timeout=timeout)
+        return f"Filled '{selector}' with provided text."
+
+    elif action == "scroll":
+        px = amount if direction == "down" else -amount
+        page.evaluate(f"window.scrollBy(0, {px})")
+        return f"Scrolled {direction} {abs(px)}px."
+
+    elif action == "eval":
+        if not js:
+            return "Error: 'js' is required for action=eval."
+        result = page.evaluate(js)
+        return str(result)
+
+    elif action == "wait":
+        if not selector:
+            return "Error: 'selector' is required for action=wait."
+        page.wait_for_selector(selector, timeout=timeout)
+        return f"Element '{selector}' is visible."
+
+    else:
+        return (
+            f"Unknown action '{action}'. "
+            "Valid: navigate, screenshot, get_text, get_html, click, fill, scroll, eval, wait, close."
+        )
 
 
 # ── Public tool function ─────────────────────────────────────────────────────
@@ -121,67 +196,12 @@ def web(
     action=wait       selector=<css>               → wait for element to appear
     action=close                                   → shut down browser
     """
-    if action == "close":
-        _cleanup()
-        return "Browser closed."
-
     try:
-        page = _get_page()
+        return _executor.submit(
+            _web_action, action, url, selector, text, js, direction, amount, timeout
+        ).result()
     except RuntimeError as e:
         return str(e)
-
-    try:
-        if action == "navigate":
-            if not url:
-                return "Error: 'url' is required for action=navigate."
-            resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout)
-            status = resp.status if resp else "unknown"
-            return f"Navigated to {url} — HTTP {status}, title: \"{page.title()}\""
-
-        elif action == "screenshot":
-            return _img_result(page, f"Screenshot of {page.url}")
-
-        elif action == "get_text":
-            return page.inner_text("body")
-
-        elif action == "get_html":
-            return page.content()
-
-        elif action == "click":
-            if not selector:
-                return "Error: 'selector' is required for action=click."
-            page.click(selector, timeout=timeout)
-            return f"Clicked '{selector}'. Current URL: {page.url}"
-
-        elif action == "fill":
-            if not selector:
-                return "Error: 'selector' is required for action=fill."
-            page.fill(selector, text, timeout=timeout)
-            return f"Filled '{selector}' with provided text."
-
-        elif action == "scroll":
-            px = amount if direction == "down" else -amount
-            page.evaluate(f"window.scrollBy(0, {px})")
-            return f"Scrolled {direction} {abs(px)}px."
-
-        elif action == "eval":
-            if not js:
-                return "Error: 'js' is required for action=eval."
-            result = page.evaluate(js)
-            return str(result)
-
-        elif action == "wait":
-            if not selector:
-                return "Error: 'selector' is required for action=wait."
-            page.wait_for_selector(selector, timeout=timeout)
-            return f"Element '{selector}' is visible."
-
-        else:
-            return (
-                f"Unknown action '{action}'. "
-                "Valid: navigate, screenshot, get_text, get_html, click, fill, scroll, eval, wait, close."
-            )
-
     except Exception as e:
         return f"Browser error ({action}): {e}"
 
