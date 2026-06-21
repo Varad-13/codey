@@ -154,9 +154,9 @@ def process_history(history, model=MODEL_NAME):
                     args = {}
 
                 if ENABLED_TOOLS and name not in ENABLED_TOOLS:
-                    continue
-
-                result = call_tool(name, args)
+                    result = f"Error: tool '{name}' is not enabled in this session."
+                else:
+                    result = call_tool(name, args)
 
                 # Image results (e.g. screenshots) are sent as multimodal content
                 # arrays so vision-capable models can see them directly.
