@@ -9,6 +9,7 @@ from .read_codebase import read_codebase, schema as read_codebase_schema
 from .read_files import read_files, schema as read_files_schema
 from .shell import shell, schema as shell_schema
 from .terminal import terminal, schema as terminal_schema
+from .view_image import view_image, schema as view_image_schema
 from .web import web, schema as web_schema
 
 TOOL_MAP = {
@@ -20,6 +21,7 @@ TOOL_MAP = {
     "calculate":     calculate,
     "read_codebase": read_codebase,
     "read_files":    read_files,
+    "view_image":    view_image,
     "edit_file":     edit_file,
     "create_file":   create_file,
     "git":           Git(),
@@ -35,6 +37,7 @@ tools = [
     calculate_schema,
     read_codebase_schema,
     read_files_schema,
+    view_image_schema,
     edit_file_schema,
     create_file_schema,
     git_tool_schema,

@@ -33,7 +33,7 @@ class DevelopWithPlaywright(_PlaywrightMixin, develop):
 
 setup(
     name='codey',
-    version='0.3.3',
+    version='0.3.4',
     packages=find_packages(include=['codey', 'codey.*']),
     include_package_data=True,
     install_requires=[
@@ -41,6 +41,7 @@ setup(
         'python-dotenv',
         'prompt_toolkit',
         'playwright',
+        'Pillow',
     ],
     cmdclass={
         'install': InstallWithPlaywright,

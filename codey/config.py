@@ -22,7 +22,7 @@ PROMPT_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["gpt-5"])["prompt"]
 
 ENABLED_TOOLS = os.getenv(
     "ENABLED_TOOLS",
-    "ask,shell,terminal,delegate,web,read_codebase,read_files,calculate,create_file,edit_file,git,grep"
+    "ask,shell,terminal,delegate,web,read_codebase,read_files,view_image,calculate,create_file,edit_file,git,grep"
 ).split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
