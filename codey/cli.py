@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import base64
 import importlib.resources as pkg_resources
+import mimetypes
 import os
 import platform
+import re
 import sys
 
 from prompt_toolkit import PromptSession
@@ -14,21 +17,87 @@ from .persistence import load_history, save_messages
 
 import codey.prompts
 
-RESET       = "\033[0m"
-USER_COLOR  = "\033[92m"
-TOOL_COLOR  = "\033[95m"
+RESET      = "\033[0m"
+USER_COLOR = "\033[92m"
+TOOL_COLOR = "\033[95m"
 
 session = PromptSession()
 kb = KeyBindings()
 
+# File extensions treated as images (sent as vision content blocks)
+_IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
 
-@kb.add('c-n')
+# Matches absolute file paths typed or pasted into the prompt:
+#   Windows:  C:\...  or  C:/...
+#   Unix:     /...    or  ~/...
+_PATH_RE = re.compile(
+    r"(?:^|(?<=\s))"           # start of string or preceded by whitespace
+    r"("
+    r"[A-Za-z]:[/\\]\S+|"      # Windows absolute  C:\foo\bar.png
+    r"~/?\S+|"                  # Unix home-relative  ~/foo.png
+    r"/\S+"                     # Unix absolute  /tmp/foo.png
+    r")"
+    r"(?=\s|$)",                # followed by whitespace or end of string
+    re.MULTILINE,
+)
+
+
+def _build_content(text: str):
+    """
+    Scan the message for file paths.  For each path that exists on disk:
+      - image files  → attached as an image_url content block (vision models see them)
+      - other files  → attached as a fenced text block
+
+    Returns a plain string if no attachments, or a content list otherwise.
+    """
+    candidates = _PATH_RE.findall(text)
+    attachments = []
+
+    for raw in candidates:
+        path = os.path.expanduser(raw.rstrip(".,;:\"'"))
+        if not os.path.isfile(path):
+            continue
+
+        ext = os.path.splitext(path)[1].lower()
+
+        if ext in _IMAGE_EXTS:
+            try:
+                with open(path, "rb") as f:
+                    data = f.read()
+                mime = mimetypes.guess_type(path)[0] or "image/png"
+                b64  = base64.b64encode(data).decode()
+                attachments.append({
+                    "type":      "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64}"},
+                })
+                print(f"{TOOL_COLOR}Attached image: {path}{RESET}")
+            except Exception as e:
+                print(f"{TOOL_COLOR}Could not attach {path}: {e}{RESET}")
+        else:
+            try:
+                with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                attachments.append({
+                    "type": "text",
+                    "text": f"\n[File: {path}]\n```\n{content}\n```",
+                })
+                print(f"{TOOL_COLOR}Attached file: {path}{RESET}")
+            except Exception as e:
+                print(f"{TOOL_COLOR}Could not attach {path}: {e}{RESET}")
+
+    if not attachments:
+        return text
+
+    return [{"type": "text", "text": text}] + attachments
+
+
+@kb.add("c-n")
 def _(event):
     """Ctrl+N — insert newline"""
-    event.current_buffer.insert_text('\n')
+    event.current_buffer.insert_text("\n")
 
 
-@kb.add('enter')
+@kb.add("enter")
 def _(event):
     """Enter — submit"""
     event.app.exit(result=event.current_buffer.text)
@@ -51,13 +120,13 @@ def main():
     system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
     history = [{"role": "system", "content": system_prompt}]
 
-    # Restore previous session for this project directory
     prior = load_history(os.getcwd())
     if prior:
         history.extend(prior)
         print(f"{TOOL_COLOR}Resumed session ({len(prior)} messages).{RESET}")
 
-    print(f"{TOOL_COLOR}Model: {MODEL_NAME} — type 'exit' to quit{RESET}\n")
+    print(f"{TOOL_COLOR}Model: {MODEL_NAME} — type 'exit' to quit{RESET}")
+    print(f"{TOOL_COLOR}Tip: paste a file path in your message to attach it (images shown to model){RESET}\n")
 
     while True:
         try:
@@ -74,16 +143,16 @@ def main():
             print("Goodbye!")
             sys.exit(0)
 
-        start_idx = len(history)
-        history.append({"role": "user", "content": text})
+        content = _build_content(text)
 
-        # process_history streams the response directly to stdout
+        start_idx = len(history)
+        history.append({"role": "user", "content": content})
+
         history, _ = process_history(history, MODEL_NAME)
 
-        # Persist everything added this turn
         save_messages(os.getcwd(), history[start_idx:])
 
-        print(f"{TOOL_COLOR}" + '-' * 60 + f"{RESET}\n")
+        print(f"{TOOL_COLOR}" + "-" * 60 + f"{RESET}\n")
 
 
 if __name__ == "__main__":
