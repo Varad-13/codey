@@ -13,8 +13,6 @@ import atexit
 import base64
 import concurrent.futures
 import os
-import time
-from pathlib import Path
 
 # Single-threaded executor: all Playwright work happens here, never in main thread
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="codey-playwright")
@@ -99,14 +97,11 @@ atexit.register(_cleanup)
 # ── Tool result sentinel for images ─────────────────────────────────────────
 
 def _img_result(page, label: str) -> dict:
-    shots_dir = Path(os.getcwd()) / ".codey_screenshots"
-    shots_dir.mkdir(exist_ok=True)
-    path = shots_dir / f"screenshot_{int(time.time())}.png"
-    page.screenshot(path=str(path), full_page=False)
-    b64 = base64.b64encode(path.read_bytes()).decode()
+    png_bytes = page.screenshot(full_page=False)
+    b64 = base64.b64encode(png_bytes).decode()
     return {
         "__image__": f"data:image/png;base64,{b64}",
-        "text": f"{label} — saved to {path}",
+        "text": label,
     }
 
 
