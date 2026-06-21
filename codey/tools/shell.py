@@ -1,11 +1,12 @@
-import subprocess
 import os
+import subprocess
 import sys
+
 
 def shell(command: str) -> str:
     """
-    Run a shell command (non-interactive) in user's current working directory.
-    Uses PowerShell on Windows, `/bin/sh` on Unix-like systems.
+    Run a shell command (non-interactive) in the user's current working directory.
+    Uses PowerShell on Windows, /bin/sh on Unix-like systems.
     """
     base_dir = os.getcwd()
 
@@ -21,8 +22,9 @@ def shell(command: str) -> str:
         cwd=base_dir,
     )
 
-    out = str(proc.stdout) + str(proc.stderr)
-    return f"Command `{command}` executed successfully:\n{out}"
+    out = proc.stdout + proc.stderr
+    return f"Command `{command}` exited with code {proc.returncode}:\n{out}"
+
 
 schema = {
     "type": "function",

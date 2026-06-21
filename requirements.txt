@@ -1,2 +1,5 @@
+openai
+python-dotenv
+prompt_toolkit
 setuptools
 wheel

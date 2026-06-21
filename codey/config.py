@@ -3,43 +3,37 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load .env into environment
 load_dotenv()
 
 API_KEY_ENV = "OPENAI_API_KEY"
 OPENAI_API_KEY = os.getenv(API_KEY_ENV)
-OPENAI_BASE_URL = "https://openrouter.ai/api/v1"  # Optional custom base URL
+OPENAI_BASE_URL = "https://openrouter.ai/api/v1"
 if not OPENAI_API_KEY:
     raise RuntimeError(f"Please set the {API_KEY_ENV} environment variable")
 
-# Persona selection
 PERSONAS = {
     "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "openai/gpt-5.1-codex-mini"), "prompt": "codey-unlocked.txt"},
 }
 
-# Default persona
 DEFAULT_PERSONA = os.getenv("DEFAULT_PERSONA", "gpt-5")
 
-# Configurable parameters based on persona
-MODEL_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["gpt-5"])["model"]
+MODEL_NAME  = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["gpt-5"])["model"]
 PROMPT_NAME = PERSONAS.get(DEFAULT_PERSONA, PERSONAS["gpt-5"])["prompt"]
 
-# Enable tools by default
-# Previously excluded partial editing, string-based edit, and shell
 ENABLED_TOOLS = os.getenv(
     "ENABLED_TOOLS",
-    "read_codebase,read_files,calculate,create_file,edit_file,git,grep"
+    "ask,shell,terminal,delegate,web,read_codebase,read_files,calculate,create_file,edit_file,git,grep"
 ).split(",")
 ENABLED_TOOLS = [t.strip() for t in ENABLED_TOOLS if t.strip()]
 
-# Toggle showing tool call and arguments
-SHOW_TOOL_CALLS = os.getenv("SHOW_TOOL_CALLS", "true").lower() == "true"
-
-# Toggle showing tool call results
+SHOW_TOOL_CALLS   = os.getenv("SHOW_TOOL_CALLS", "true").lower() == "true"
 SHOW_TOOL_RESULTS = os.getenv("SHOW_TOOL_RESULTS", "false").lower() == "true"
-
-# Toggle showing the system prompt in CLI
 SHOW_SYSTEM_PROMPT = True
 
-# Initialize OpenAI client
+# Prompt the user to approve shell commands before they run (set CONFIRM_SHELL=true)
+CONFIRM_SHELL = os.getenv("CONFIRM_SHELL", "false").lower() == "true"
+
+# Maximum tool-call rounds per user turn; prevents runaway loops
+MAX_TOOL_ROUNDS = int(os.getenv("MAX_TOOL_ROUNDS", "25"))
+
 client = OpenAI(base_url=OPENAI_BASE_URL, api_key=OPENAI_API_KEY)

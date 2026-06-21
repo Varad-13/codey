@@ -1,42 +1,48 @@
 import os
 import subprocess
-from typing import Optional
 
 
 def grep(term: str) -> str:
     """
-    Search recursively in the repository for files containing the search term.
+    Search the repository for files containing the search term.
+    Covers both git-tracked files and untracked (non-ignored) files.
     Returns matching lines with file path, line number, and content.
     """
-    matches = []
-    # Get the list of tracked files using git
     try:
-        output = subprocess.check_output(['git', 'ls-files'], text=True)
-        tracked_files = output.splitlines()
+        tracked = subprocess.check_output(
+            ['git', 'ls-files'], text=True
+        ).splitlines()
+        untracked = subprocess.check_output(
+            ['git', 'ls-files', '--others', '--exclude-standard'], text=True
+        ).splitlines()
     except subprocess.CalledProcessError:
-        return "Error retrieving tracked files."
+        return "Error retrieving file list."
 
-    for filepath in tracked_files:
-        # Try reading as text
+    # Deduplicate while preserving order
+    all_files = list(dict.fromkeys(tracked + untracked))
+
+    matches = []
+    for filepath in all_files:
+        if not os.path.isfile(filepath):
+            continue
         try:
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 for i, line in enumerate(f, start=1):
                     if term in line:
                         matches.append(f"{filepath}:{i}: {line.rstrip()}")
-        except Exception:
-            continue  # Skip unreadable files
+        except (IOError, OSError):
+            continue
 
     if matches:
         return "\n".join(matches)
-    else:
-        return f"No matches found for '{term}' in tracked files."
+    return f"No matches found for '{term}'."
 
 
 schema = {
     "type": "function",
     "function": {
         "name": "grep",
-        "description": "Search tracked files for a given term and return file paths, line numbers, and matching content.",
+        "description": "Search tracked and untracked repository files for a given term. Returns file paths, line numbers, and matching content.",
         "parameters": {
             "type": "object",
             "properties": {

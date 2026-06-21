@@ -1,22 +1,38 @@
 import os
-from codey.tools.shell import shell
+import subprocess
+from codey.utils import assert_within_project
+
 
 def edit_file(filename: str, content: str) -> str:
     """
     Completely replace a file's content.
-    
+
     Returns git diff showing the changes.
     """
-    if not os.path.isfile(filename):
-        return f"Error: File '{filename}' not found."
-    
+    base_dir = os.getcwd()
+    filepath = filename if os.path.isabs(filename) else os.path.join(base_dir, filename)
+
     try:
-        with open(filename, "w", encoding="utf-8") as f:
+        assert_within_project(filepath, base_dir)
+    except ValueError as e:
+        return f"Error: {e}"
+
+    if not os.path.isfile(filepath):
+        return f"Error: File '{filename}' not found."
+
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        
-        diff_output = shell(f"git diff {filename}")
+
+        proc = subprocess.run(
+            ["git", "diff", filepath],
+            capture_output=True,
+            text=True,
+            cwd=base_dir,
+        )
+        diff_output = proc.stdout + proc.stderr
         return f"File '{filename}' updated.\n\n{diff_output}"
-        
+
     except Exception as e:
         return f"Error: {e}"
 
@@ -25,7 +41,7 @@ schema = {
     "type": "function",
     "function": {
         "name": "edit_file",
-        "description": "Replace entire file content. First read the file with read_file, then write back the complete modified content.",
+        "description": "Replace entire file content. First read the file with read_files, then write back the complete modified content.",
         "parameters": {
             "type": "object",
             "properties": {

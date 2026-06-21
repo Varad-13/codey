@@ -1,4 +1,8 @@
-from codey.tools.shell import shell
+import os
+import shlex
+import subprocess
+import sys
+
 
 class Git:
     """Stateless Git tool: run whitelisted git commands with appended args."""
@@ -12,10 +16,19 @@ class Git:
     def __call__(self, command, args=None):
         if command not in self.ALLOWED:
             raise ValueError(f"Unknown git command: {command}")
-        cmd = f"git {command}"
+        cmd = ["git", command]
         if args:
-            cmd += f" {args}"
-        return shell(cmd)
+            # posix=False on Windows so backslashes in paths are not treated as escapes
+            cmd += shlex.split(args, posix=(sys.platform != "win32"))
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=os.getcwd(),
+        )
+        out = proc.stdout + proc.stderr
+        return f"Command `git {command}` exited with code {proc.returncode}:\n{out}"
+
 
 schema = {
     "type": "function",

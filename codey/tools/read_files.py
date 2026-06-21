@@ -1,4 +1,5 @@
 import os
+from codey.utils import assert_within_project
 
 
 def read_files(file_list: str) -> str:
@@ -10,6 +11,11 @@ def read_files(file_list: str) -> str:
     outputs = []
     for fname in [f.strip() for f in file_list.split(",")]:
         filepath = os.path.join(base_dir, fname)
+        try:
+            assert_within_project(filepath, base_dir)
+        except ValueError:
+            outputs.append(f"**Error:** '{fname}' is outside the project directory.")
+            continue
         if not os.path.isfile(filepath):
             outputs.append(f"**Error:** '{fname}' not found.")
             continue
@@ -21,6 +27,7 @@ def read_files(file_list: str) -> str:
         except Exception as e:
             outputs.append(f"**Error reading {fname}:** {e}")
     return "\n\n".join(outputs)
+
 
 schema = {
     "type": "function",
