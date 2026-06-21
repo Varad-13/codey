@@ -13,12 +13,13 @@ from prompt_toolkit.key_binding import KeyBindings
 
 from .chat_runner import process_history
 from .config import MODEL_NAME, PROMPT_NAME, ENABLED_TOOLS
-from .persistence import load_history, save_messages
+from .persistence import list_sessions, load_session, new_session_path, save_messages
 from .tools import TOOL_MAP
 
 import codey.prompts
 
 RESET      = "\033[0m"
+DIM        = "\033[2m"
 USER_COLOR = "\033[92m"
 TOOL_COLOR = "\033[95m"
 
@@ -144,6 +145,61 @@ def _(event):
     event.app.exit(result=event.current_buffer.text)
 
 
+def _fmt_date(ts: float) -> str:
+    from datetime import datetime
+    dt = datetime.fromtimestamp(ts)
+    now = datetime.now()
+    delta = (now.date() - dt.date()).days
+    if delta == 0:
+        return dt.strftime("Today      %H:%M")
+    if delta == 1:
+        return dt.strftime("Yesterday  %H:%M")
+    if delta < 7:
+        return dt.strftime("%A    %H:%M")
+    return dt.strftime("%b %d, %Y      ")
+
+
+def _pick_session(project_dir: str):
+    """
+    Display a session picker and return (session_path, prior_messages).
+    Returns a fresh path with no messages if the user picks New or there are no sessions.
+    """
+    sessions = list_sessions(project_dir)
+    if not sessions:
+        return new_session_path(project_dir), []
+
+    project_name = os.path.basename(os.path.realpath(project_dir))
+    print(f"\n{TOOL_COLOR}Sessions — {project_name}{RESET}\n")
+
+    for i, s in enumerate(sessions, 1):
+        date_str = _fmt_date(s["mtime"])
+        preview  = s["preview"]
+        if len(preview) > 52:
+            preview = preview[:52] + "…"
+        count_str = f"({s['count']} msgs)"
+        print(f"  {DIM}[{i}]{RESET} {date_str}  {DIM}{count_str:12}{RESET}  {preview}")
+
+    print(f"\n  {DIM}[N]{RESET}  New session\n")
+
+    while True:
+        try:
+            raw = input(f"{USER_COLOR}Select [{1}–{len(sessions)}/N]:{RESET} ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nExiting.")
+            sys.exit(0)
+
+        if raw in ("n", ""):
+            return new_session_path(project_dir), []
+        if raw.isdigit():
+            idx = int(raw) - 1
+            if 0 <= idx < len(sessions):
+                s = sessions[idx]
+                prior = load_session(s["path"])
+                print(f"{TOOL_COLOR}Resumed session ({s['count']} messages).{RESET}")
+                return s["path"], prior
+        print(f"  Enter a number 1–{len(sessions)} or N for a new session.")
+
+
 def load_prompt(name: str, os_info: str, shell_info: str) -> str:
     try:
         with pkg_resources.open_text(codey.prompts, name) as f:
@@ -170,14 +226,12 @@ def main():
         "or summarise the content for you."
     )
 
+    session_path, prior = _pick_session(os.getcwd())
+
     history = [{"role": "system", "content": system_prompt}]
+    history.extend(prior)
 
-    prior = load_history(os.getcwd())
-    if prior:
-        history.extend(prior)
-        print(f"{TOOL_COLOR}Resumed session ({len(prior)} messages).{RESET}")
-
-    print(f"{TOOL_COLOR}Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
+    print(f"\n{TOOL_COLOR}Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
     print(f"{TOOL_COLOR}Tip: paste a file path to attach it | type @image to attach clipboard image{RESET}\n")
 
     while True:
@@ -202,7 +256,7 @@ def main():
 
         history, _ = process_history(history, MODEL_NAME)
 
-        save_messages(os.getcwd(), history[start_idx:])
+        save_messages(session_path, history[start_idx:])
 
         print(f"{TOOL_COLOR}" + "-" * 60 + f"{RESET}\n")
 

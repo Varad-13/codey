@@ -1,22 +1,28 @@
 import hashlib
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 _HISTORY_DIR = Path.home() / ".codey" / "history"
 
 
-def _history_path(project_dir: str) -> Path:
+# ── Internal helpers ─────────────────────────────────────────────────────────
+
+def _project_key(project_dir: str) -> str:
     real = os.path.realpath(project_dir)
     h = hashlib.md5(real.encode()).hexdigest()[:8]
     name = os.path.basename(real) or "root"
-    _HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    return _HISTORY_DIR / f"{name}-{h}.jsonl"
+    return f"{name}-{h}"
 
 
-def load_history(project_dir: str) -> list:
-    """Return persisted non-system messages for this project directory."""
-    path = _history_path(project_dir)
+def _sessions_dir(project_dir: str) -> Path:
+    d = _HISTORY_DIR / _project_key(project_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _read_jsonl(path: Path) -> list:
     if not path.exists():
         return []
     messages = []
@@ -31,9 +37,74 @@ def load_history(project_dir: str) -> list:
     return messages
 
 
-def save_messages(project_dir: str, messages: list) -> None:
-    """Append messages to the project's history file."""
-    path = _history_path(project_dir)
-    with open(path, "a", encoding="utf-8") as f:
+def _session_preview(messages: list) -> str:
+    """Return a short preview string from the first user message."""
+    for m in messages:
+        if m.get("role") != "user":
+            continue
+        content = m.get("content", "")
+        if isinstance(content, str):
+            return content.replace("\n", " ")[:70]
+        if isinstance(content, list):
+            for block in content:
+                if isinstance(block, dict) and block.get("type") == "text":
+                    return block["text"].replace("\n", " ")[:70]
+    return ""
+
+
+# ── Migration from old single-file format ───────────────────────────────────
+
+def _migrate_old_format(project_dir: str) -> None:
+    key = _project_key(project_dir)
+    old_path = _HISTORY_DIR / f"{key}.jsonl"
+    if not old_path.exists():
+        return
+    sessions_dir = _sessions_dir(project_dir)
+    mtime = datetime.fromtimestamp(old_path.stat().st_mtime)
+    new_path = sessions_dir / (mtime.strftime("%Y%m%d-%H%M%S") + ".jsonl")
+    if not new_path.exists():
+        old_path.rename(new_path)
+    else:
+        old_path.unlink()
+
+
+# ── Public API ───────────────────────────────────────────────────────────────
+
+def list_sessions(project_dir: str) -> list:
+    """
+    Return sessions for this project sorted newest-first.
+    Each item: {path, mtime, count, preview}
+    """
+    _migrate_old_format(project_dir)
+    d = _sessions_dir(project_dir)
+    sessions = []
+    for p in sorted(d.glob("*.jsonl"), key=lambda x: x.stat().st_mtime, reverse=True):
+        msgs = _read_jsonl(p)
+        if not msgs:
+            continue
+        sessions.append({
+            "path":    p,
+            "mtime":   p.stat().st_mtime,
+            "count":   len(msgs),
+            "preview": _session_preview(msgs),
+        })
+    return sessions
+
+
+def new_session_path(project_dir: str) -> Path:
+    """Return a Path for a brand-new session (file is not created yet)."""
+    d = _sessions_dir(project_dir)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return d / f"{ts}.jsonl"
+
+
+def load_session(path: Path) -> list:
+    """Load messages from a session file, excluding any system messages."""
+    return [m for m in _read_jsonl(path) if m.get("role") != "system"]
+
+
+def save_messages(session_path: Path, messages: list) -> None:
+    """Append messages to the given session file."""
+    with open(session_path, "a", encoding="utf-8") as f:
         for msg in messages:
             f.write(json.dumps(msg) + "\n")
