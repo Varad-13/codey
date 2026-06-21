@@ -12,8 +12,9 @@ from prompt_toolkit.formatted_text import ANSI
 from prompt_toolkit.key_binding import KeyBindings
 
 from .chat_runner import process_history
-from .config import MODEL_NAME, PROMPT_NAME
+from .config import MODEL_NAME, PROMPT_NAME, ENABLED_TOOLS
 from .persistence import load_history, save_messages
+from .tools import TOOL_MAP
 
 import codey.prompts
 
@@ -118,6 +119,17 @@ def main():
     shell_info = "/bin/sh"
 
     system_prompt = load_prompt(PROMPT_NAME, os_info, shell_info)
+
+    # Append the live tool list so the model always knows exactly what's available
+    active_tools = [name for name in TOOL_MAP if not ENABLED_TOOLS or name in ENABLED_TOOLS]
+    system_prompt += (
+        f"\n\n## Active tools in this session\n"
+        f"{', '.join(active_tools)}\n\n"
+        "**URL rule**: when the user's message contains a URL, call "
+        "`web(action='navigate', url=<url>)` immediately — do not ask them to copy "
+        "or summarise the content for you."
+    )
+
     history = [{"role": "system", "content": system_prompt}]
 
     prior = load_history(os.getcwd())
@@ -125,7 +137,7 @@ def main():
         history.extend(prior)
         print(f"{TOOL_COLOR}Resumed session ({len(prior)} messages).{RESET}")
 
-    print(f"{TOOL_COLOR}Model: {MODEL_NAME} — type 'exit' to quit{RESET}")
+    print(f"{TOOL_COLOR}Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
     print(f"{TOOL_COLOR}Tip: paste a file path in your message to attach it (images shown to model){RESET}\n")
 
     while True:

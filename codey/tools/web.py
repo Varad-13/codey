@@ -20,6 +20,22 @@ _browser = None
 _page = None
 
 
+def _ensure_chromium():
+    """Run `playwright install chromium` if the browser executable is missing."""
+    import subprocess
+    import sys
+    print("Playwright: Chromium not found — downloading now (one-time ~120 MB)...")
+    result = subprocess.run(
+        [sys.executable, "-m", "playwright", "install", "chromium"],
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Could not auto-install Chromium.\n"
+            "Run manually: playwright install chromium"
+        )
+
+
 def _get_page():
     global _pw_ctx, _browser, _page
     if _page is not None:
@@ -29,14 +45,26 @@ def _get_page():
     except ImportError:
         raise RuntimeError(
             "Playwright is not installed.\n"
-            "Run: pip install playwright && playwright install chromium"
+            "Run: pip install playwright"
         )
     headless = os.getenv("CODEY_WEB_HEADLESS", "false").lower() == "true"
-    _pw_ctx = sync_playwright().__enter__()
-    _browser = _pw_ctx.chromium.launch(headless=headless)
-    _page = _browser.new_page()
-    atexit.register(_cleanup)
-    return _page
+
+    def _launch():
+        global _pw_ctx, _browser, _page
+        _pw_ctx = sync_playwright().__enter__()
+        _browser = _pw_ctx.chromium.launch(headless=headless)
+        _page = _browser.new_page()
+        atexit.register(_cleanup)
+        return _page
+
+    try:
+        return _launch()
+    except Exception as exc:
+        err = str(exc).lower()
+        if any(k in err for k in ("executable", "not found", "install playwright", "browser")):
+            _ensure_chromium()
+            return _launch()
+        raise
 
 
 def _cleanup():
