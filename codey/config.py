@@ -12,7 +12,7 @@ if not OPENAI_API_KEY:
     raise RuntimeError(f"Please set the {API_KEY_ENV} environment variable")
 
 PERSONAS = {
-    "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "z-ai/glm-5.2"), "prompt": "codey-unlocked.txt"},
+    "gpt-5": {"model": os.getenv("UNLOCKED_MODEL", "minimax/minimax-m3"), "prompt": "codey-unlocked.txt"},
 }
 
 DEFAULT_PERSONA = os.getenv("DEFAULT_PERSONA", "gpt-5")
