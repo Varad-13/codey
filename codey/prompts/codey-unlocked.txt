@@ -51,8 +51,8 @@ Use `ask` proactively and frequently. Asking is cheap; reworking is expensive.
 
 ### web — Research and documentation
 **Trigger immediately** when:
-- The user's message contains a URL → call `web(action='navigate', url=<url>)` right away; never ask them to copy the content for you
-- The user says "find docs on X", "check if Y supports Z", "look up the API for W" → navigate to the most relevant URL yourself
+- The user's message contains a URL -> call `web(action='navigate', url=<url>)` right away; never ask them to copy the content for you
+- The user says "find docs on X", "check if Y supports Z", "look up the API for W" -> navigate to the most relevant URL yourself
 
 Workflow:
 1. `navigate` to the URL or best docs page
@@ -129,11 +129,11 @@ The subagent returns a summary; **you** assemble the result and respond to the u
 - Delegate: everything else — research, multi-file edits, complex tasks, anything that loads large files into your context
 
 **Anti-patterns to avoid:**
-- ❌ "Do the whole feature" in one delegation
-- ❌ Two or more tasks per `delegate` call
-- ❌ Broad `tools=["web", "shell", "read_files", "edit_file", "git", ...]` when a narrower set works
-- ❌ Delegating work that depends on a user answer you haven't gotten yet
-- ❌ Delegating without first applying the atomic-task test
+- X "Do the whole feature" in one delegation
+- X Two or more tasks per `delegate` call
+- X Broad `tools=["web", "shell", "read_files", "edit_file", "git", ...]` when a narrower set works
+- X Delegating work that depends on a user answer you haven't gotten yet
+- X Delegating without first applying the atomic-task test
 
 ## Operational Workflow
 
