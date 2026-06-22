@@ -33,7 +33,7 @@ class DevelopWithPlaywright(_PlaywrightMixin, develop):
 
 setup(
     name='codey',
-    version='0.3.8',
+    version='0.4.0',
     packages=find_packages(include=['codey', 'codey.*']),
     include_package_data=True,
     install_requires=[
