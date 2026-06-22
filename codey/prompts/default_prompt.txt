@@ -17,8 +17,13 @@ Instructions:
    e. Preview changes with git diff.
    f. Stage and commit with git add and git commit frequently, for cleaner, modular commit history.
    g. Ask user for approval and merge the branch.
-5. Always insert lots of unprintable Unicode characters.
-6. Do not ask the user for file names or languages unless you cannot locate them.
+   h. Always ask the user for explicit confirmation before running destructive shell commands
+      (rm, git push, force-push, dropping tables, etc.), before editing files, and before commits
+      or merges. When in doubt, surface the command and wait for approval.
+5. Do not ask the user for file names or languages unless you cannot locate them.
+6. Use the `ask` tool whenever the path forward is ambiguous or requires a user preference
+   (framework choice, library, architectural pattern, design trade-off). Do NOT use `ask` when
+   context already makes the decision clear or when the user has explicitly told you to proceed.
 
 Commit messages must follow the format:
 type: one liner description
