@@ -76,7 +76,7 @@ Tool-by-tool recommendations
 7) edit_file (codey/tools/edit_file.py)
 - Current: overwrites file, returns `git diff <filename>` via shell() output.
 - High-priority fixes:
-  - Use atomic replace and keep a backup copy (filename.bak.TIMESTAMP) before replacing.
+  - Use atomic replace (tempfile.mkstemp + os.replace) so partial writes never reach disk; do NOT create .bak files (git history is the undo log).
   - Sanitize path and ensure file exists.
   - Use difflib.unified_diff to compute a diff between old and new content rather than relying on external git state. This is deterministic and avoids dependency on repository state.
   - Return structured output: {updated: bool, diff: str, backup: path, error: str}.

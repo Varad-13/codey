@@ -77,21 +77,37 @@ Codey provides a set of tools designed to perform specific tasks within the chat
  ```
 
 ## 5. Edit File Tool
-- **Description**: Replaces the full content of an existing file.
+- **Description**: Surgically edit an existing file with three modes. Pick ONE mode per call. For full-file rewrites, use `create_file` with `overwrite=True` instead.
+- **Modes**:
+  - **`find_replace`** -- exact-string find and replace. Use when the snippet is unique and counting lines is awkward. Pass `search_text`, `replacement`, and optionally `replace_all=True`. Errors on 0 matches (with a hint to check whitespace) or 2+ matches (with the matching line numbers).
+  - **`replace_range`** -- replace lines `[start_line, end_line]` (1-indexed, inclusive) with `replacement`. Use when the change spans a known inclusive line range. Errors on out-of-range or inverted ranges.
+  - **`insert`** -- insert `content` after line `line` (0 = top of file, total = end of file). Use when adding new lines without disturbing existing ones.
+- **Behavior**:
+  - Atomic write via `tempfile.mkstemp` + `os.replace` (no partial files).
+  - No backup files are created. Git history is the undo log -- use `git` tool to review or revert.
+  - Returns a short summary plus the unified diff from `git diff`.
+  - Path safety enforced via `assert_within_project`.
 - **Schema**:
  ```json
  {
  "type": "function",
  "name": "edit_file",
- "description": "Replace the full content of an existing file.",
+ "description": "Surgical file editor. Three modes: find_replace, replace_range, insert. Use create_file for full-file rewrites. Each call picks ONE mode and passes that mode's keyword args. Use find_replace when the snippet is unique and line counts are awkward (exact-string match; replace_all=True to replace every occurrence). Use replace_range when the change spans a known inclusive line range [start_line, end_line]. Use insert to add new lines after a given line (0 = top of file, total = append at end). Returns a short summary plus the unified diff from `git diff`.",
  "parameters": {
  "type": "object",
  "properties": {
- "filename": {"type": "string"},
- "content": {"type": "string"}
+   "filename": {"type": "string", "description": "Path to the file (relative to cwd or absolute)."},
+   "mode": {"type": "string", "enum": ["find_replace", "replace_range", "insert"], "description": "Which edit mode to use. Pick exactly one."},
+   "search_text": {"type": "string", "description": "[find_replace] Exact substring to find. Must be non-empty. If 2+ matches and replace_all=False, the call errors out with the line numbers."},
+   "replacement": {"type": "string", "description": "[find_replace, replace_range] Text to insert in place of the match or the replaced line range. May contain newlines."},
+   "replace_all": {"type": "boolean", "default": false, "description": "[find_replace] If true, replace every occurrence of search_text. If false (default), require exactly one match."},
+   "start_line": {"type": "integer", "description": "[replace_range] First line of the inclusive range to replace. 1-indexed."},
+   "end_line": {"type": "integer", "description": "[replace_range] Last line of the inclusive range to replace. 1-indexed."},
+   "line": {"type": "integer", "description": "[insert] Insert content AFTER this line. 0 = top of file, total_lines = append at end."},
+   "content": {"type": "string", "description": "[insert] Text to insert. Include a trailing newline if you want it on its own line."}
  },
- "required": ["filename", "content"],
- "additionalProperties": False
+ "required": ["filename", "mode"],
+ "additionalProperties": false
  }
  }
  ```
