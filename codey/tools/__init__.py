@@ -9,6 +9,7 @@ from .read_codebase import read_codebase, schema as read_codebase_schema
 from .read_files import read_files, schema as read_files_schema
 from .shell import shell, schema as shell_schema
 from .terminal import terminal, schema as terminal_schema
+from .update import update, schema as update_schema
 from .view_image import view_image, schema as view_image_schema
 from .web import web, schema as web_schema
 
@@ -26,6 +27,7 @@ TOOL_MAP = {
     "create_file":   create_file,
     "git":           Git(),
     "grep":          grep,
+    "update":        update,
 }
 
 tools = [
@@ -42,4 +44,5 @@ tools = [
     create_file_schema,
     git_tool_schema,
     grep_schema,
+    update_schema,
 ]

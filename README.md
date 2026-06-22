@@ -6,6 +6,7 @@ Codey is a Python package providing AI tooling that enables developers to integr
 - **AI Power**: Leverage artificial intelligence to enhance your applications.
 - **Easy Installation**: Quickly install and get started with a simple command.
 - **Customizable Configuration**: Adjust settings to suit your specific needs.
+- **Self-Update**: Built-in `codey update` command and `update` tool keep Codey current with GitHub Releases.
 
 ## Future Plans
 Once fully developed, Codey will operate as proprietary software. Free binaries will be available for everyday users, while enterprise plans will offer additional features and support.
@@ -19,6 +20,16 @@ After installation, run the CLI with:
 ```bash
 codey
 ```
+
+### CLI subcommands
+```bash
+codey --version        # print installed version (e.g. `codey 0.4.0`)
+codey update           # check GitHub Releases for a newer version and install it
+```
+
+### Environment variables
+- `CODEY_NO_UPDATE_CHECK=1` — disable the startup update-check (silences the network call).
+- See [Configuration Documentation](docs/configuration.md) for the full list.
 
 ## Configuration
 Set environment variables or use a local `.env` file:

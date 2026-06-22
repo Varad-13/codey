@@ -14,3 +14,25 @@ dist/
 .vscode/
 __pycache__
 *.log
+
+# Editor / tool backup files (created by edit_file, IDEs, etc.)
+*.bak
+*.bak.*
+*.swp
+*.swo
+*~
+
+# Root-level ad-hoc verification scripts (underscored to avoid import clashes)
+_*.py
+!codey/_*.py
+
+# Update-check cache (created at runtime by codey/update.py)
+.update_check.json
+.codey-update-cache/
+
+# Local venvs / test artifacts
+.tox/
+.coverage
+htmlcov/
+.mypy_cache/
+.pytest_cache/

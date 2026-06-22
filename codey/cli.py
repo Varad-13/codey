@@ -11,10 +11,12 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import ANSI
 from prompt_toolkit.key_binding import KeyBindings
 
+from . import __version__
 from .chat_runner import process_history
 from .config import MODEL_NAME, PROMPT_NAME, ENABLED_TOOLS
 from .persistence import list_sessions, load_session, new_session_path, save_messages
 from .tools import TOOL_MAP
+from .update import check_for_update, format_update_notice, perform_update
 
 import codey.prompts
 
@@ -23,14 +25,11 @@ DIM        = "\033[2m"
 USER_COLOR = "\033[92m"
 TOOL_COLOR = "\033[95m"
 
-session = PromptSession()
-kb = KeyBindings()
-
 # File extensions treated as images (sent as vision content blocks)
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
 
 # Quoted Windows path:  "C:\path with spaces\file.png"  or  'C:\...'
-_QUOTED_PATH_RE = re.compile(r'["\']([A-Za-z]:[/\\].+?|~/[^\'"]+|/[^\'"]+)["\']')
+_QUOTED_PATH_RE = re.compile(r'["\']([A-Za-z]:[/\\].+?|~/[^"\']+|/[^"\']+)["\']')
 # Unquoted path (no spaces):  C:\foo\bar.png  ~/foo  /tmp/x
 _UNQUOTED_PATH_RE = re.compile(
     r'(?:^|(?<=\s))([A-Za-z]:[/\\]\S+|~/?\S+|/\S+)(?=\s|$)',
@@ -133,16 +132,41 @@ def _build_content(text: str):
     return [{"type": "text", "text": text}] + attachments
 
 
-@kb.add("c-n")
-def _(event):
-    """Ctrl+N — insert newline"""
-    event.current_buffer.insert_text("\n")
+# ---------------------------------------------------------------------------
+# Lazy prompt session / key bindings
+#
+# PromptSession() touches the Win32 console during construction, which means
+# importing cli.py from a non-interactive environment (CI, `codey update`,
+# `codey --version`) raises NoConsoleScreenBufferError. We construct them on
+# first use instead.
+# ---------------------------------------------------------------------------
+_session = None
+_kb = None
 
 
-@kb.add("enter")
-def _(event):
-    """Enter — submit"""
-    event.app.exit(result=event.current_buffer.text)
+def _get_prompt_session():
+    global _session
+    if _session is None:
+        _session = PromptSession()
+    return _session
+
+
+def _get_key_bindings():
+    global _kb
+    if _kb is None:
+        _kb = KeyBindings()
+
+        @_kb.add("c-n")
+        def _(event):
+            """Ctrl+N — insert newline"""
+            event.current_buffer.insert_text("\n")
+
+        @_kb.add("enter")
+        def _(event):
+            """Enter — submit"""
+            event.app.exit(result=event.current_buffer.text)
+
+    return _kb
 
 
 def _fmt_date(ts: float) -> str:
@@ -210,7 +234,33 @@ def load_prompt(name: str, os_info: str, shell_info: str) -> str:
         return ""
 
 
+def _dispatch_argv(argv):
+    """Inspect argv for --version/-V and `update` subcommand before
+    starting the chat loop. Returns True if a dispatch was handled.
+    """
+    args = list(argv)
+
+    # --version / -V anywhere in argv
+    for a in args:
+        if a in ("--version", "-V"):
+            print("codey {0}".format(__version__))
+            sys.exit(0)
+
+    # `update` subcommand: standalone token (allowing leading flags)
+    for a in args:
+        if a == "update":
+            ok, msg = perform_update()
+            print(msg, file=sys.stderr)
+            sys.exit(0 if ok else 1)
+
+    return False
+
+
 def main():
+    # Handle CLI subcommands / flags before doing anything else
+    if _dispatch_argv(sys.argv[1:]):
+        return
+
     os_info    = platform.system()
     shell_info = "/bin/sh"
 
@@ -226,6 +276,10 @@ def main():
         "or summarise the content for you."
     )
 
+    _update_info = check_for_update()
+    if _update_info:
+        print(format_update_notice(_update_info), file=sys.stderr)
+
     session_path, prior = _pick_session(os.getcwd())
 
     history = [{"role": "system", "content": system_prompt}]
@@ -233,6 +287,10 @@ def main():
 
     print(f"\n{TOOL_COLOR}Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
     print(f"{TOOL_COLOR}Tip: paste a file path to attach it | type @image to attach clipboard image{RESET}\n")
+
+    # Lazy-init now that we know we have a real console.
+    session = _get_prompt_session()
+    kb = _get_key_bindings()
 
     while True:
         try:

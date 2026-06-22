@@ -203,5 +203,26 @@ Codey provides a set of tools designed to perform specific tasks within the chat
  }
  ```
 
+## 11. Update Tool
+- **Description**: Checks GitHub Releases for a newer Codey version; with explicit user confirmation, downloads the wheel, verifies its SHA256, and runs `pip install --upgrade --force-reinstall`.
+- **Schema**:
+ ```json
+ {
+ "type": "function",
+ "name": "update",
+ "description": "Check for a newer version of Codey and, with explicit user confirmation, install it from GitHub Releases. Always prompts the user before running pip.",
+ "parameters": {
+ "type": "object",
+ "properties": {},
+ "required": [],
+ "additionalProperties": false
+ }
+ }
+ ```
+- **Behavior**:
+  - The model *must* ask the user via the `ask` tool before invoking `update` — it never installs silently.
+  - If no update is available, returns `"Codey is already up to date (vX.Y.Z)."` without prompting.
+  - The release wheel's SHA256 is read from the asset `digest` field; verification is skipped only if the digest is absent.
+
 ## Conclusion
 Each of these tools ensures smooth and intuitive interactions within the Codey chat interface, providing a comprehensive functionality set for developers.
