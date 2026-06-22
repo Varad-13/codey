@@ -28,6 +28,73 @@ if not logger.handlers:
 
 TRUNCATE_LIMIT = 250
 
+# Trigger context compression when total history exceeds this character count (~125K tokens)
+CONTEXT_CACHE_THRESHOLD = 500_000
+
+
+def _estimate_size(history: list) -> int:
+    """Approximate total character count across all message contents."""
+    total = 0
+    for m in history:
+        c = m.get("content", "")
+        if isinstance(c, str):
+            total += len(c)
+        elif isinstance(c, list):
+            for block in c:
+                if isinstance(block, dict):
+                    total += len(block.get("text", ""))
+    return total
+
+
+def _compress_context(history: list, model: str) -> list:
+    """
+    Summarize the older portion of conversation when context is too large.
+    Preserves: system message, last 20 messages, plus a summary of everything older.
+    """
+    system_msgs = [m for m in history if m.get("role") == "system"]
+    other_msgs  = [m for m in history if m.get("role") != "system"]
+
+    keep_tail = 20
+    if len(other_msgs) <= keep_tail:
+        return history
+
+    to_summarize = other_msgs[:-keep_tail]
+    recent       = other_msgs[-keep_tail:]
+
+    lines = [
+        f"{m['role']}: {m['content']}"
+        for m in to_summarize
+        if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str) and m["content"]
+    ]
+
+    if not lines:
+        return history
+
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Summarize the following conversation concisely, "
+                        "preserving key context, decisions, and outcomes."
+                    ),
+                },
+                {"role": "user", "content": "\n\n".join(lines)},
+            ],
+            stream=False,
+        )
+        summary = resp.choices[0].message.content or ""
+    except Exception as e:
+        logger.warning("Context compression failed: %s", e)
+        return history
+
+    logger.info("Context compressed: summarized %d messages", len(to_summarize))
+    print(f"{TOOL_COLOR}[context compressed: {len(to_summarize)} older messages summarized]{RESET}")
+    summary_msg = {"role": "user", "content": f"[Earlier conversation summary]\n{summary}"}
+    return system_msgs + [summary_msg] + recent
+
 
 def truncate_args(args):
     try:
@@ -86,6 +153,9 @@ def process_history(history, model=MODEL_NAME):
     and return the updated history plus the assistant's final text response.
     """
     history = trim_history(history)
+
+    if _estimate_size(history) > CONTEXT_CACHE_THRESHOLD:
+        history = _compress_context(history, model)
 
     for _ in range(MAX_TOOL_ROUNDS):
         stream = client.chat.completions.create(
