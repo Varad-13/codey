@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 
+from ..encoding_safety import run_capture
+
 DEFAULT_TIMEOUT = 30  # seconds
 
 
@@ -13,8 +15,14 @@ def shell(command: str, timeout: int = DEFAULT_TIMEOUT) -> str:
     WARNING: This tool can execute arbitrary commands, including destructive ones
     (rm, git push --force, drop tables, etc.). Always review the command before
     approving and prefer the more targeted tools (git, edit_file, create_file)
-    when possible. A 30-second timeout is enforced by default; pass timeout=N
-    to override.
+    when possible. A 30-second timeout is enforced by default; pass timeout=N to
+    override.
+
+    Child output is decoded with ``errors="replace"`` (see
+    ``codey.encoding_safety``) so unmappable bytes -- e.g. the C1 range
+    0x80..0x9F that Windows consoles can't represent -- become U+FFFD
+    instead of raising ``UnicodeDecodeError`` and re-entering the model
+    loop.
     """
     base_dir = os.getcwd()
 
@@ -24,15 +32,12 @@ def shell(command: str, timeout: int = DEFAULT_TIMEOUT) -> str:
         shell_cmd = ["/bin/sh", "-c", command]
 
     try:
-        proc = subprocess.run(
+        proc = run_capture(
             shell_cmd,
-            capture_output=True,
-            text=True,
-            cwd=base_dir,
             timeout=timeout,
-            check=False,
+            cwd=base_dir,
         )
-        out = proc.stdout + proc.stderr
+        out = (proc.stdout or "") + (proc.stderr or "")
         return f"Command `{command}` exited with code {proc.returncode}:\n{out}"
     except subprocess.TimeoutExpired:
         return f"Error: command `{command}` timed out after {timeout} seconds."
