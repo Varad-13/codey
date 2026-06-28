@@ -13,8 +13,8 @@ from prompt_toolkit.key_binding import KeyBindings
 
 from . import __version__
 from .chat_runner import process_history
-from .config import MODEL_NAME, PROMPT_NAME, ENABLED_TOOLS
-from .persistence import list_sessions, load_session, new_session_path, save_messages
+from .config import MODEL_NAME, PROMPT_NAME, ENABLED_TOOLS, PROVIDER
+from .persistence import list_sessions, load_session, new_session_path, save_messages, load_session_meta, save_session_meta
 from .tools import TOOL_MAP
 from .update import check_for_update, format_update_notice, perform_update
 
@@ -198,10 +198,16 @@ def _pick_session(project_dir: str):
     for i, s in enumerate(sessions, 1):
         date_str = _fmt_date(s["mtime"])
         preview  = s["preview"]
-        if len(preview) > 52:
-            preview = preview[:52] + "…"
+        if len(preview) > 40:
+            preview = preview[:40] + "…"
         count_str = f"({s['count']} msgs)"
-        print(f"  {DIM}[{i}]{RESET} {date_str}  {DIM}{count_str:12}{RESET}  {preview}")
+        tok = s.get("tokens", {})
+        if tok.get("total_tokens"):
+            cost_part = f" ${tok['cost']:.4f}" if tok.get("cost") else ""
+            tok_str = f"  {DIM}in:{tok['prompt_tokens']} out:{tok['completion_tokens']} tot:{tok['total_tokens']}{cost_part}{RESET}"
+        else:
+            tok_str = ""
+        print(f"  {DIM}[{i}]{RESET} {date_str}  {DIM}{count_str:12}{RESET}  {preview}{tok_str}")
 
     print(f"\n  {DIM}[N]{RESET}  New session\n")
 
@@ -285,7 +291,22 @@ def main():
     history = [{"role": "system", "content": system_prompt}]
     history.extend(prior)
 
-    print(f"\n{TOOL_COLOR}Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
+    # Load any existing token counts for a resumed session
+    session_tokens = load_session_meta(session_path)
+    if not session_tokens:
+        session_tokens = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "cost": 0.0}
+
+    def _print_token_summary():
+        t = session_tokens
+        if t["total_tokens"]:
+            cost_str = f"  cost: ${t['cost']:.6f}" if t.get("cost") else ""
+            print(
+                f"{TOOL_COLOR}Tokens — in: {t['prompt_tokens']}  "
+                f"out: {t['completion_tokens']}  "
+                f"total: {t['total_tokens']}{cost_str}{RESET}"
+            )
+
+    print(f"\n{TOOL_COLOR}Provider: {PROVIDER}  Model: {MODEL_NAME}  Tools: {', '.join(active_tools)} — type 'exit' to quit{RESET}")
     print(f"{TOOL_COLOR}Tip: paste a file path to attach it | type @image to attach clipboard image{RESET}\n")
 
     # Lazy-init now that we know we have a real console.
@@ -301,10 +322,12 @@ def main():
             )
         except (EOFError, KeyboardInterrupt):
             print("\nExiting.")
+            _print_token_summary()
             sys.exit(0)
 
         if text.strip().lower() in ("exit", "quit"):
             print("Goodbye!")
+            _print_token_summary()
             sys.exit(0)
 
         content = _build_content(text)
@@ -312,7 +335,21 @@ def main():
         start_idx = len(history)
         history.append({"role": "user", "content": content})
 
-        history, _ = process_history(history, MODEL_NAME)
+        try:
+            history, _, usage = process_history(history, MODEL_NAME)
+        except KeyboardInterrupt:
+            print(f"\n{TOOL_COLOR}[Interrupted — returning to prompt]{RESET}")
+            # Roll back the user message so the incomplete turn isn't saved
+            history = history[:start_idx]
+            print(f"{TOOL_COLOR}" + "-" * 60 + f"{RESET}\n")
+            continue
+
+        # Accumulate token usage for this session
+        if usage:
+            for k in ("prompt_tokens", "completion_tokens", "total_tokens"):
+                session_tokens[k] = session_tokens.get(k, 0) + usage.get(k, 0)
+            session_tokens["cost"] = session_tokens.get("cost", 0.0) + usage.get("cost", 0.0)
+            save_session_meta(session_path, session_tokens)
 
         save_messages(session_path, history[start_idx:])
 

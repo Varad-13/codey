@@ -105,14 +105,15 @@ def truncate_args(args):
 
 
 def call_tool(name, args):
-    """Safely call a tool, with optional shell-command confirmation."""
-    if name == "shell" and CONFIRM_SHELL:
-        cmd = args.get("command", "")
-        sys.stdout.write(f"{TOOL_COLOR}Shell: {cmd}{RESET}\nExecute? [y/N] ")
-        sys.stdout.flush()
+    """Safely call a tool, always asking for user approval before executing."""
+    sys.stdout.write(f"{TOOL_COLOR}Tool: {name}({truncate_args(args)}){RESET}\nApprove? [y/N] ")
+    sys.stdout.flush()
+    try:
         answer = sys.stdin.readline().strip().lower()
-        if answer != "y":
-            return "Command execution cancelled by user."
+    except (EOFError, KeyboardInterrupt):
+        return "Command execution cancelled by user."
+    if answer != "y":
+        return "Command execution cancelled by user."
 
     if SHOW_TOOL_CALLS:
         print(f"{TOOL_COLOR}Tool call: {name}({truncate_args(args)}){RESET}")
@@ -157,6 +158,8 @@ def process_history(history, model=MODEL_NAME):
     if _estimate_size(history) > CONTEXT_CACHE_THRESHOLD:
         history = _compress_context(history, model)
 
+    total_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "cost": 0.0}
+
     for _ in range(MAX_TOOL_ROUNDS):
         stream = client.chat.completions.create(
             model=model,
@@ -164,36 +167,53 @@ def process_history(history, model=MODEL_NAME):
             tools=_active_tools(),
             tool_choice="auto",
             stream=True,
+            stream_options={"include_usage": True},
         )
 
         content_parts = []
         tool_calls_map = {}   # index -> {id, name, arguments}
         printed_prefix = False
 
-        for chunk in stream:
-            if not chunk.choices:
-                continue
-            delta = chunk.choices[0].delta
+        try:
+            for chunk in stream:
+                if getattr(chunk, "usage", None):
+                    u = chunk.usage
+                    total_usage["prompt_tokens"]     += getattr(u, "prompt_tokens", 0) or 0
+                    total_usage["completion_tokens"] += getattr(u, "completion_tokens", 0) or 0
+                    total_usage["total_tokens"]      += getattr(u, "total_tokens", 0) or 0
+                    # OpenRouter includes cost (USD) on the usage object
+                    cost = getattr(u, "cost", None) or (
+                        u.model_extra.get("cost") if getattr(u, "model_extra", None) else None
+                    )
+                    if cost is not None:
+                        total_usage["cost"] += float(cost)
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta
 
-            if delta.content:
-                if not printed_prefix:
-                    print(f"\n{CODEY_COLOR}Codey: ", end="", flush=True)
-                    printed_prefix = True
-                print(delta.content, end="", flush=True)
-                content_parts.append(delta.content)
+                if delta.content:
+                    if not printed_prefix:
+                        print(f"\n{CODEY_COLOR}Codey: ", end="", flush=True)
+                        printed_prefix = True
+                    print(delta.content, end="", flush=True)
+                    content_parts.append(delta.content)
 
-            if delta.tool_calls:
-                for tc in delta.tool_calls:
-                    idx = tc.index
-                    if idx not in tool_calls_map:
-                        tool_calls_map[idx] = {"id": "", "name": "", "arguments": ""}
-                    if tc.id:
-                        tool_calls_map[idx]["id"] = tc.id
-                    if tc.function:
-                        if tc.function.name:
-                            tool_calls_map[idx]["name"] += tc.function.name
-                        if tc.function.arguments:
-                            tool_calls_map[idx]["arguments"] += tc.function.arguments
+                if delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        idx = tc.index
+                        if idx not in tool_calls_map:
+                            tool_calls_map[idx] = {"id": "", "name": "", "arguments": ""}
+                        if tc.id:
+                            tool_calls_map[idx]["id"] = tc.id
+                        if tc.function:
+                            if tc.function.name:
+                                tool_calls_map[idx]["name"] += tc.function.name
+                            if tc.function.arguments:
+                                tool_calls_map[idx]["arguments"] += tc.function.arguments
+        except KeyboardInterrupt:
+            if printed_prefix:
+                print(RESET, flush=True)
+            raise
 
         if printed_prefix:
             print(RESET, flush=True)
@@ -248,9 +268,9 @@ def process_history(history, model=MODEL_NAME):
 
         # No tool calls — this is the final response
         history.append({"role": "assistant", "content": content})
-        return history, content
+        return history, content, total_usage
 
     msg = f"[Stopped after {MAX_TOOL_ROUNDS} tool-call rounds]"
     print(f"{TOOL_COLOR}{msg}{RESET}")
     history.append({"role": "assistant", "content": msg})
-    return history, msg
+    return history, msg, total_usage
