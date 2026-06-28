@@ -14,12 +14,10 @@ Only stdlib is used at runtime. packaging.version is used if available,
 otherwise a tiny tuple-comparison helper handles numeric versions.
 """
 
-import hashlib
 import json
 import os
 import subprocess
 import sys
-import tempfile
 import time
 import urllib.request
 import urllib.error
@@ -405,11 +403,7 @@ def perform_update(info=None):
         return True, "Already up to date (v{0}).".format(CURRENT_VERSION)
 
     new_v = info.get("version", "?")
-    wheel_url = info.get("wheel_url") or ""
-    expected_sha = info.get("wheel_sha256") or ""
-
-    if not wheel_url:
-        return False, "Update failed: release has no downloadable wheel."
+    pip_target = "git+https://github.com/Varad-13/codey.git@v{0}".format(new_v)
 
     _print_release_notes(info)
 
@@ -422,59 +416,18 @@ def perform_update(info=None):
     if answer not in ("y", "yes"):
         return False, "Update cancelled."
 
-    tmp_path = None
     try:
-        # Download to a temp file
-        fd, tmp_path_str = tempfile.mkstemp(suffix=".whl", prefix="codey-update-")
-        tmp_path = tmp_path_str
-        os.close(fd)
-        try:
-            with urllib.request.urlopen(wheel_url, timeout=30) as resp:
-                data = resp.read()
-        except Exception as e:
-            return False, "Update failed: download error ({0})".format(e)
-        try:
-            with open(tmp_path, "wb") as f:
-                f.write(data)
-        except Exception as e:
-            return False, "Update failed: could not save wheel ({0})".format(e)
+        proc = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", pip_target],
+            capture_output=True,
+            text=True,
+        )
+    except Exception as e:
+        return False, "Update failed: pip could not be invoked ({0})".format(e)
 
-        # Verify SHA256 if we have it
-        if expected_sha:
-            try:
-                h = hashlib.sha256()
-                with open(tmp_path, "rb") as f:
-                    for chunk in iter(lambda: f.read(64 * 1024), b""):
-                        h.update(chunk)
-                got = h.hexdigest().lower()
-                want = expected_sha.lower()
-                if got != want:
-                    return False, (
-                        "Update failed: SHA256 mismatch "
-                        "(expected {0}, got {1})".format(want, got)
-                    )
-            except Exception as e:
-                return False, "Update failed: hash check error ({0})".format(e)
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "").strip().splitlines()
+        tail = err[-1] if err else "pip exited with code {0}".format(proc.returncode)
+        return False, "Update failed: {0}".format(tail)
 
-        # pip install --upgrade --force-reinstall
-        try:
-            proc = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", tmp_path],
-                capture_output=True,
-                text=True,
-            )
-        except Exception as e:
-            return False, "Update failed: pip could not be invoked ({0})".format(e)
-
-        if proc.returncode != 0:
-            err = (proc.stderr or proc.stdout or "").strip().splitlines()
-            tail = err[-1] if err else "pip exited with code {0}".format(proc.returncode)
-            return False, "Update failed: {0}".format(tail)
-
-        return True, "Updated to v{0}. Restart Codey to use the new version.".format(new_v)
-    finally:
-        if tmp_path:
-            try:
-                os.unlink(tmp_path)
-            except Exception:
-                pass
+    return True, "Updated to v{0}. Restart Codey to use the new version.".format(new_v)

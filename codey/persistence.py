@@ -70,10 +70,34 @@ def _migrate_old_format(project_dir: str) -> None:
 
 # ── Public API ───────────────────────────────────────────────────────────────
 
+def _meta_path(session_path: Path) -> Path:
+    return session_path.with_suffix(".meta.json")
+
+
+def load_session_meta(session_path: Path) -> dict:
+    p = _meta_path(session_path)
+    if not p.exists():
+        return {}
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_session_meta(session_path: Path, meta: dict) -> None:
+    p = _meta_path(session_path)
+    try:
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(meta, f)
+    except Exception:
+        pass
+
+
 def list_sessions(project_dir: str) -> list:
     """
     Return sessions for this project sorted newest-first.
-    Each item: {path, mtime, count, preview}
+    Each item: {path, mtime, count, preview, tokens}
     """
     _migrate_old_format(project_dir)
     d = _sessions_dir(project_dir)
@@ -87,6 +111,7 @@ def list_sessions(project_dir: str) -> list:
             "mtime":   p.stat().st_mtime,
             "count":   len(msgs),
             "preview": _session_preview(msgs),
+            "tokens":  load_session_meta(p),
         })
     return sessions
 
